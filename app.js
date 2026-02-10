@@ -220,6 +220,8 @@ document.getElementById('billForm').addEventListener('submit', function (e) {
             address: document.getElementById('customerAddress').value
         },
         transport: document.getElementById('transport').value,
+        paymentMode: document.getElementById('paymentMode') ? document.getElementById('paymentMode').value : 'Cash',
+        status: document.getElementById('paymentStatus') ? document.getElementById('paymentStatus').value : 'Unpaid',
         items: items,
         total: parseFloat(document.getElementById('billTotal').textContent),
         timestamp: new Date().toISOString()
@@ -262,7 +264,7 @@ function loadBills() {
     const tbody = document.getElementById('billsTableBody');
 
     if (bills.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><p>No bills found. Create your first bill!</p></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><p>No bills found. Create your first bill!</p></td></tr>';
         return;
     }
 
@@ -272,6 +274,8 @@ function loadBills() {
             <td>${formatDate(bill.date)}</td>
             <td>${bill.customer.name}</td>
             <td>${bill.items.length} item(s)</td>
+            <td>${bill.paymentMode || 'N/A'}</td>
+            <td>${bill.status || 'N/A'}</td>
             <td><strong>₹${bill.total.toFixed(2)}</strong></td>
             <td class="table-actions">
                 <button class="btn-view" onclick="viewBill('${bill.id}')">View</button>
@@ -318,6 +322,14 @@ function viewBill(billId) {
                 <h4>Transport</h4>
                 <p>${bill.transport || 'N/A'}</p>
             </div>
+            <div class="info-group">
+                <h4>Payment Mode</h4>
+                <p>${bill.paymentMode || 'N/A'}</p>
+            </div>
+            <div class="info-group">
+                <h4>Status</h4>
+                <p>${bill.status || 'N/A'}</p>
+            </div>
         </div>
         
         <div class="bill-items">
@@ -360,7 +372,31 @@ function closeBillModal() {
 }
 
 function printBill() {
-    window.print();
+    if (!currentBill) {
+        alert('No bill selected to print');
+        return;
+    }
+
+    const content = document.getElementById('billViewContent').innerHTML;
+    const stylesHref = 'styles.css';
+
+    const printWindow = window.open('', '_blank', 'width=800,height=900');
+    if (!printWindow) {
+        alert('Unable to open print window. Please allow popups.');
+        return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Print Bill - ${currentBill.invoiceNo}</title><link rel="stylesheet" href="${stylesHref}"></head><body>${content}</body></html>`);
+    printWindow.document.close();
+
+    // Give the new window a moment to load resources, then print and close it
+    printWindow.focus();
+    setTimeout(() => {
+        printWindow.print();
+        // Optionally close after printing; keep small delay for print dialog
+        setTimeout(() => printWindow.close(), 500);
+    }, 300);
 }
 
 function deleteBill(billId) {
@@ -547,11 +583,11 @@ function exportBills() {
         return;
     }
 
-    let csv = 'Invoice No,Date,Customer Name,Phone,Address,Transport,Items,Total Amount\n';
+    let csv = 'Invoice No,Date,Customer Name,Phone,Address,Transport,Payment Mode,Status,Items,Total Amount\n';
 
     bills.forEach(bill => {
         const items = bill.items.map(item => `${item.name} (${item.qty}x₹${item.rate})`).join('; ');
-        csv += `"${bill.invoiceNo}","${bill.date}","${bill.customer.name}","${bill.customer.phone}","${bill.customer.address}","${bill.transport}","${items}","${bill.total}"\n`;
+        csv += `"${bill.invoiceNo}","${bill.date}","${bill.customer.name}","${bill.customer.phone}","${bill.customer.address}","${bill.transport}","${bill.paymentMode || ''}","${bill.status || ''}","${items}","${bill.total}"\n`;
     });
 
     downloadCSV(csv, 'bills_export.csv');
