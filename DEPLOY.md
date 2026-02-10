@@ -1,33 +1,50 @@
 Vercel deployment + Vercel KV setup
+Vercel deployment + backend options
 
-Quick steps to deploy this app with persistent, small-text storage using Vercel KV:
+Quick steps to deploy this app with persistent, small-text storage.
 
-1. Install dependencies for local development (optional):
+1) Install dependencies for local development (optional):
 
 ```bash
 npm init -y
-npm install @vercel/kv
+npm install @vercel/kv @supabase/supabase-js
 ```
 
-1. Create a Vercel project (connect to this repo) and add a Vercel KV instance:
-   - In the Vercel Dashboard, go to your project → "Integrations" → add "KV" (or search "KV").
-   - Bind the KV instance to your project following the dashboard steps. Vercel will make the KV available to serverless functions.
+1) Vercel (dashboard):
+   - In Vercel, Import Project → choose `saketh-005/bill_manager`.
+   - Deploy the project. The `api/` folder will be deployed as serverless functions.
 
-2. Environment / local dev:
-   - For local testing with Vercel CLI, follow Vercel's docs to configure KV locally (you may need to set `VERCEL_KV_REST_URL` / `VERCEL_KV_REST_TOKEN` or use `vercel dev` which provides bindings).
+2) Choose a backend option:
 
-3. How it works in this repo:
-   - `api/state.js` exposes a simple GET/POST API backed by Vercel KV key `bill_manager_state`.
-   - The client (`app.js`) fetches `/api/state` on load and POSTs the full state to `/api/state` when saving.
+- Vercel KV (if available): install KV integration in Vercel Marketplace and bind it to the project. The existing `api/state.js` will work with KV.
+- Supabase (recommended for structured data / SQL): follow the Supabase steps below and use the Supabase-backed API included in this repo.
+- Local only: `localStorage` — no backend required.
 
-4. Deploy:
-   - Push your branch and deploy from the Vercel dashboard, or run:
+1) Supabase setup (if you choose Supabase):
 
-```bash
-vercel --prod
+  a) Create a Supabase project at <https://app.supabase.com/>
+
+  b) In the SQL editor, run:
+
+```sql
+create table app_state (
+  id text primary key,
+  payload jsonb
+);
+
+insert into app_state (id, payload) values ('main', jsonb_build_object('bills', '[]'::jsonb, 'inventory', '[]'::jsonb, 'stockHistory', '[]'::jsonb)) on conflict do nothing;
 ```
 
-Notes / alternatives:
+  c) In Project Settings → API, copy the `URL` and the **service_role** key. Add these to Vercel Project Environment Variables:
 
-- If you prefer SQL-like queries or relational features, use Supabase (Postgres) instead.
-- For a single-device, zero-backend option, `localStorage` is still the easiest choice.
+- `SUPABASE_URL` = your Supabase project URL
+- `SUPABASE_SERVICE_KEY` = your Supabase service_role key
+
+  d) Redeploy the Vercel project. The serverless API at `/api/state` will read/write the single `app_state` row.
+
+Notes:
+
+- Keep the `SUPABASE_SERVICE_KEY` secret and only set it in Vercel's project settings (server-side only).
+- Supabase gives you SQL access and a free tier suitable for small apps.
+
+If you want, I can also add an optional `x-api-key` check to the API to limit access to authorized requests.
