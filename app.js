@@ -17,7 +17,12 @@ async function loadAllData() {
     try {
         setDefaultDate();
 
-        const res = await fetch('/api/state');
+        // Include Authorization header if available
+        const sessionResp = await (window.supabaseClient ? window.supabaseClient.auth.getSession() : Promise.resolve({ data: { session: null } }));
+        const token = sessionResp && sessionResp.data && sessionResp.data.session ? sessionResp.data.session.access_token : null;
+        const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+
+        const res = await fetch('/api/state', { headers });
         if (!res.ok) throw new Error('Failed to fetch state');
         const state = await res.json();
 
@@ -39,9 +44,15 @@ async function loadAllData() {
 async function saveState() {
     try {
         const payload = { bills, inventory, stockHistory };
+        // Include Authorization header if available
+        const sessionResp = await (window.supabaseClient ? window.supabaseClient.auth.getSession() : Promise.resolve({ data: { session: null } }));
+        const token = sessionResp && sessionResp.data && sessionResp.data.session ? sessionResp.data.session.access_token : null;
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
         const res = await fetch('/api/state', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify(payload)
         });
         if (!res.ok) throw new Error('Failed to save state');

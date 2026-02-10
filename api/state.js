@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
 const API_KEY = process.env.API_KEY || null; // optional write-protection key
 
 const supabase = SUPABASE_URL && SUPABASE_KEY
@@ -21,13 +21,29 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'POST') {
-            // If API_KEY is configured, require header `x-api-key: <API_KEY>` for writes
+            // Allow write if x-api-key matches OR if Authorization Bearer token is a valid Supabase user token
+            let allowed = false;
+
             if (API_KEY) {
                 const headerKey = req.headers['x-api-key'] || req.headers['X-API-KEY'] || req.headers['X-Api-Key'];
-                if (!headerKey || headerKey !== API_KEY) {
-                    return res.status(401).json({ error: 'Missing or invalid x-api-key header' });
+                if (headerKey && headerKey === API_KEY) allowed = true;
+            }
+
+            // Check Authorization bearer token
+            const authHeader = req.headers.authorization || req.headers.Authorization;
+            if (!allowed && authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+                const token = authHeader.split(' ')[1];
+                try {
+                    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+                    if (!userErr && userData && userData.user) {
+                        allowed = true;
+                    }
+                } catch (e) {
+                    // ignore
                 }
             }
+
+            if (!allowed) return res.status(401).json({ error: 'Missing or invalid credentials for write' });
 
             const body = req.body || {};
             const { error } = await supabase.from('app_state').upsert({ id: 'main', payload: body }, { returning: 'minimal' });

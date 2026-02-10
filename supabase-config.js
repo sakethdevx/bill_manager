@@ -47,6 +47,10 @@
             await window.supabaseClient.auth.signOut();
         };
 
+        // Backwards-compatible aliases used in HTML
+        window.signOut = window.supabaseSignOut;
+        window.signIn = function (email, password) { return window.supabaseSignIn(email, password); };
+
         // Initial UI update
         updateUI();
     } catch (err) {
