@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
+const API_KEY = process.env.API_KEY || null; // optional write-protection key
 
 const supabase = SUPABASE_URL && SUPABASE_KEY
     ? createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } })
@@ -20,6 +21,14 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'POST') {
+            // If API_KEY is configured, require header `x-api-key: <API_KEY>` for writes
+            if (API_KEY) {
+                const headerKey = req.headers['x-api-key'] || req.headers['X-API-KEY'] || req.headers['X-Api-Key'];
+                if (!headerKey || headerKey !== API_KEY) {
+                    return res.status(401).json({ error: 'Missing or invalid x-api-key header' });
+                }
+            }
+
             const body = req.body || {};
             const { error } = await supabase.from('app_state').upsert({ id: 'main', payload: body }, { returning: 'minimal' });
             if (error) return res.status(500).json({ error });

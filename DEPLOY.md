@@ -48,3 +48,19 @@ Notes:
 - Supabase gives you SQL access and a free tier suitable for small apps.
 
 If you want, I can also add an optional `x-api-key` check to the API to limit access to authorized requests.
+
+API protection (recommended)
+
+1. In Vercel Project → Settings → Environment Variables add an `API_KEY` (mark as secret). Use a long random string.
+2. The server API will require a request header `x-api-key: <API_KEY>` for POST requests to `/api/state`.
+3. Example fetch from client (if you must):
+
+```js
+fetch('/api/state', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', 'x-api-key': '<YOUR_API_KEY>' },
+  body: JSON.stringify(state)
+});
+```
+
+If `API_KEY` is not set, the API will allow writes (not recommended for public deployments).
