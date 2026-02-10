@@ -1,5 +1,3 @@
-Vercel deployment + backend options
-
 Quick steps to deploy this app with persistent, small-text storage.
 
 1) Install dependencies for local development (optional):
@@ -13,53 +11,86 @@ npm install @vercel/kv @supabase/supabase-js
    - In Vercel, Import Project → choose `saketh-005/bill_manager`.
    - Deploy the project. The `api/` folder will be deployed as serverless functions.
 
-2) Choose a backend option:
+# Deploying Bill Manager (current implementation)
 
-- Vercel KV (if available): install KV integration in Vercel Marketplace and bind it to the project. The existing `api/state.js` will work with KV.
-- Supabase (recommended for structured data / SQL): follow the Supabase steps below and use the Supabase-backed API included in this repo.
-- Local only: `localStorage` — no backend required.
+ This project uses a static client served on Vercel plus two serverless endpoints in `/api/` backed by Supabase (Postgres). The client authenticates with Supabase Auth (anon key) and persists app state to a single `app_state` row via the server API.
 
-1) Supabase setup (if you choose Supabase):
+ Quick checklist
 
-  a) Create a Supabase project at <https://app.supabase.com/>
+- Create a Supabase project
+- Create the `app_state` table and seed a `main` row
+- Add required environment variables to Vercel
+- Push to GitHub and import the repo into Vercel
 
-  b) In the SQL editor, run:
+ 1) Supabase setup
 
-```sql
-create table app_state (
-  id text primary key,
-  payload jsonb
-);
+ a) Create a Supabase project at <https://app.supabase.com/>
 
-insert into app_state (id, payload) values ('main', jsonb_build_object('bills', '[]'::jsonb, 'inventory', '[]'::jsonb, 'stockHistory', '[]'::jsonb)) on conflict do nothing;
-```
+ b) In the Supabase SQL editor run the minimal schema:
 
-  c) In Project Settings → API, copy the `URL` and the **service_role** key. Add these to Vercel Project Environment Variables:
+ ```sql
+ create table if not exists public.app_state (
+   id text primary key,
+   payload jsonb
+ );
 
-- `SUPABASE_URL` = your Supabase project URL
-- `SUPABASE_SERVICE_KEY` = your Supabase service_role key
+ insert into public.app_state (id, payload)
+ values ('main', jsonb_build_object('bills', '[]'::jsonb, 'inventory', '[]'::jsonb, 'stockHistory', '[]'::jsonb))
+ on conflict (id) do nothing;
+ ```
 
-  d) Redeploy the Vercel project. The serverless API at `/api/state` will read/write the single `app_state` row.
+ c) (Optional) Enable Email/Password auth if you want to create users. The app expects you to create users in the Supabase dashboard for single-user login (no signup UI).
 
-Notes:
+ 1) Vercel environment variables (required)
 
-- Keep the `SUPABASE_SERVICE_KEY` secret and only set it in Vercel's project settings (server-side only).
-- Supabase gives you SQL access and a free tier suitable for small apps.
+ Set these in your Vercel project (Environment → Project Variables). Use the **service role** key only for server-side variables.
 
-If you want, I can also add an optional `x-api-key` check to the API to limit access to authorized requests.
+- `SUPABASE_URL` — your Supabase project URL (public)
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon/public key (client-side)
+- `SUPABASE_SERVICE_ROLE_KEY` — Supabase **service_role** key (server-side only)
+- `API_KEY` — a long random secret used by server to gate POST writes (recommended)
 
-API protection (recommended)
+ Notes:
 
-1. In Vercel Project → Settings → Environment Variables add an `API_KEY` (mark as secret). Use a long random string.
-2. The server API will require a request header `x-api-key: <API_KEY>` for POST requests to `/api/state`.
-3. Example fetch from client (if you must):
+- `SUPABASE_SERVICE_ROLE_KEY` must remain secret; never expose it to the browser.
+- The repo's serverless `/api/state` implementation accepts writes if the request contains either:
+  - `x-api-key: <API_KEY>` header matching the Vercel secret, OR
+  - `Authorization: Bearer <access_token>` with a valid Supabase user token.
 
-```js
-fetch('/api/state', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json', 'x-api-key': '<YOUR_API_KEY>' },
-  body: JSON.stringify(state)
-});
-```
+ 1) API endpoints
 
-If `API_KEY` is not set, the API will allow writes (not recommended for public deployments).
+- `/api/config` — returns public values used by the client (`SUPABASE_URL` and anon key). The client loads this on startup and constructs the Supabase client.
+- `/api/state` — GET returns the full app state (bills, inventory, stockHistory). POST upserts the JSON payload into the `app_state` row. POSTs require either `x-api-key` or a Supabase bearer token.
+
+ 1) Client behavior
+
+- The client (see `supabase-config.js`) fetches `/api/config` to bootstrap the Supabase client with the anon key.
+- After sign-in the client calls `/api/state` with an `Authorization: Bearer <token>` header so the server validates the user before persisting.
+
+ 1) Deploying
+
+- Push your code to GitHub (this repo). In Vercel: Import Project → choose your GitHub repo → Deploy.
+- Ensure Vercel environment variables (above) are set before deploying so server functions can access Supabase.
+
+ 1) Security & best practices
+
+- Use `API_KEY` to protect write access to `/api/state` if you are not relying on Supabase user tokens.
+- Rotate the service role key if it was ever committed or exposed.
+- For production, consider implementing Supabase Row Level Security (RLS) and a dedicated table structure instead of a single JSON row.
+
+ 1) Troubleshooting
+
+- If `/api/state` returns an error about missing table, confirm the `app_state` table exists and that `SUPABASE_SERVICE_ROLE_KEY` is set in Vercel.
+- If client login does not work, verify `NEXT_PUBLIC_SUPABASE_ANON_KEY` is set and that the user exists in Supabase Auth (created manually via dashboard).
+
+ 1) Example client POST (when using `API_KEY`)
+
+ ```js
+ await fetch('/api/state', {
+   method: 'POST',
+   headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.API_KEY },
+   body: JSON.stringify({ bills, inventory, stockHistory })
+ });
+ ```
+
+ If you'd like, I can add a tiny health-check endpoint, scheduled export job, or a one-click DB export button.
