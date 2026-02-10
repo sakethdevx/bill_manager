@@ -1,0 +1,12 @@
+{
+    "name": "bill_manager",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "start": "vercel dev"
+    },
+    "dependencies": {
+        "@vercel/kv": "^0.3.0"
+    }
+}
