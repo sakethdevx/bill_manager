@@ -47,6 +47,79 @@ body {
     animation: fadeInUp 0.5s ease-out;
 }
 
+.auth-top {
+    text-align: left;
+    margin-bottom: 18px;
+}
+
+.auth-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-mark {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    box-shadow: var(--shadow);
+}
+
+.logo-text h1 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.logo-text p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.auth-sub {
+    color: var(--text-secondary);
+    margin-top: 10px;
+    font-size: 0.95rem;
+}
+
+.auth-body .form-group input {
+    padding: 12px 14px;
+    border-radius: 10px;
+}
+
+.auth-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0 16px 0;
+}
+
+.remember {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.forgot {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.auth-note {
+    margin-top: 12px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
 .auth-header {
     text-align: center;
     margin-bottom: 30px;
