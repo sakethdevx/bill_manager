@@ -1,3 +1,5 @@
+# Bill Manager Deployment Guide
+
 Quick steps to deploy this app with persistent, small-text storage.
 
 1) Install dependencies for local development (optional):
@@ -11,7 +13,7 @@ npm install @vercel/kv @supabase/supabase-js
    - In Vercel, Import Project → choose `saketh-005/bill_manager`.
    - Deploy the project. The `api/` folder will be deployed as serverless functions.
 
-# Deploying Bill Manager (current implementation)
+## Deploying Bill Manager (current implementation)
 
  This project uses a static client served on Vercel plus two serverless endpoints in `/api/` backed by Supabase (Postgres). The client authenticates with Supabase Auth (anon key) and persists app state to a single `app_state` row via the server API.
 
