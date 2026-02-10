@@ -1,4 +1,3 @@
-Vercel deployment + Vercel KV setup
 Vercel deployment + backend options
 
 Quick steps to deploy this app with persistent, small-text storage.

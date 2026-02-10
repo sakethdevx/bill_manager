@@ -7,10 +7,8 @@
     <title>Bill Manager - BALAJI SAI AUTO MOBILES</title>
     <link rel="stylesheet" href="styles.css">
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Supabase client (UMD) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/umd/supabase.min.js"></script>
 </head>
 
 <body>
@@ -34,42 +32,13 @@
                 <input type="password" id="login-password" placeholder="Enter your password" required>
             </div>
 
-            <button class="btn btn-primary btn-block" onclick="signIn()">Sign In</button>
+            <button class="btn btn-primary btn-block"
+                onclick="supabaseSignIn(document.getElementById('login-email').value, document.getElementById('login-password').value)">Sign
+                In</button>
 
-            <p class="auth-switch">
-                Don't have an account? <a href="#" onclick="switchToSignup()">Sign Up</a>
-            </p>
+            <p class="auth-switch">Contact the site admin to create an account.</p>
         </div>
-
-        <!-- Signup Form -->
-        <div id="signup-form" class="auth-form" style="display: none;">
-            <div class="auth-header">
-                <h1>📋 Bill Manager</h1>
-                <h2>BALAJI SAI AUTO MOBILES</h2>
-                <p>Create your account</p>
-            </div>
-
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="signup-email" placeholder="Enter your email" required>
-            </div>
-
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="signup-password" placeholder="Minimum 6 characters" required>
-            </div>
-
-            <div class="form-group">
-                <label>Confirm Password</label>
-                <input type="password" id="signup-confirm-password" placeholder="Re-enter password" required>
-            </div>
-
-            <button class="btn btn-primary btn-block" onclick="signUp()">Sign Up</button>
-
-            <p class="auth-switch">
-                Already have an account? <a href="#" onclick="switchToLogin()">Sign In</a>
-            </p>
-        </div>
+        <!-- Signup is disabled; users are managed in Supabase dashboard -->
     </div>
 
     <!-- Main Application Container -->
@@ -344,7 +313,7 @@
         </div>
     </div>
 
-    <script src="firebase-config.js"></script>
+    <script src="supabase-config.js"></script>
     <script src="app.js"></script>
 </body>
 

@@ -9,8 +9,7 @@ let currentBill = null;
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', function () {
-    // Load persisted state from serverless KV
-    loadAllData();
+    // Wait for Supabase auth to initialize in `supabase-config.js` which will call `loadAllData()` when signed in.
 });
 
 // Load all data from serverless KV state
