@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill Manager - BALAJI SAI AUTO MOBILES</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body>
+    <!-- Authentication Container -->
+    <div id="auth-container" class="auth-container">
+        <!-- Login Form -->
+        <div id="login-form" class="auth-form">
+            <div class="auth-header">
+                <h1>📋 Bill Manager</h1>
+                <h2>BALAJI SAI AUTO MOBILES</h2>
+                <p>Sign in to continue</p>
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="Enter your password" required>
+            </div>
+
+            <button class="btn btn-primary btn-block" onclick="signIn()">Sign In</button>
+
+            <p class="auth-switch">
+                Don't have an account? <a href="#" onclick="switchToSignup()">Sign Up</a>
+            </p>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signup-form" class="auth-form" style="display: none;">
+            <div class="auth-header">
+                <h1>📋 Bill Manager</h1>
+                <h2>BALAJI SAI AUTO MOBILES</h2>
+                <p>Create your account</p>
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="signup-email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="signup-password" placeholder="Minimum 6 characters" required>
+            </div>
+
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="signup-confirm-password" placeholder="Re-enter password" required>
+            </div>
+
+            <button class="btn btn-primary btn-block" onclick="signUp()">Sign Up</button>
+
+            <p class="auth-switch">
+                Already have an account? <a href="#" onclick="switchToLogin()">Sign In</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Application Container -->
+    <div id="app-container" class="container" style="display: none;">
+        <!-- Navigation -->
+        <nav class="nav-bar">
+            <div class="nav-left">
+                <h1>📋 Bill Manager</h1>
+            </div>
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showSection('bills')">Bills</button>
+                <button class="nav-btn" onclick="showSection('inventory')">Inventory</button>
+                <button class="nav-btn" onclick="showSection('stock')">Stock Management</button>
+            </div>
+            <div class="nav-right">
+                <span class="user-info">👤 <span id="user-email"></span></span>
+                <button class="btn btn-secondary btn-sm" onclick="signOut()">Logout</button>
+            </div>
+        </nav>
+
+        <!-- Bills Section -->
+        <section id="bills-section" class="section active">
+            <div class="section-header">
+                <h2>📄 Bill Management</h2>
+                <button class="btn btn-primary" onclick="showNewBillForm()">+ New Bill</button>
+            </div>
+
+            <!-- New Bill Form -->
+            <div id="new-bill-form" class="form-container" style="display: none;">
+                <div class="form-header">
+                    <h3>Create New Bill</h3>
+                    <button class="btn-close" onclick="hideNewBillForm()">×</button>
+                </div>
+
+                <form id="billForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Invoice No.</label>
+                            <input type="text" id="invoiceNo" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Date</label>
+                            <input type="date" id="invoiceDate" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Customer Name</label>
+                            <input type="text" id="customerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" id="customerPhone">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" id="customerAddress">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Transport</label>
+                        <input type="text" id="transport">
+                    </div>
+
+                    <hr>
+
+                    <div class="items-section">
+                        <div class="section-header">
+                            <h4>Items</h4>
+                            <button type="button" class="btn btn-secondary" onclick="addBillItem()">+ Add Item</button>
+                        </div>
+                        <div id="billItemsList" class="items-list">
+                            <!-- Bill items will be added here -->
+                        </div>
+                    </div>
+
+                    <div class="total-section">
+                        <h3>Total Amount: ₹<span id="billTotal">0.00</span></h3>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">Save Bill</button>
+                        <button type="button" class="btn btn-secondary" onclick="hideNewBillForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Bills List -->
+            <div class="bills-list">
+                <div class="list-header">
+                    <h3>All Bills</h3>
+                    <button class="btn btn-info" onclick="exportBills()">📥 Export Bills</button>
+                </div>
+                <div id="billsTableContainer">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Invoice No.</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billsTableBody">
+                            <!-- Bills will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Inventory Section -->
+        <section id="inventory-section" class="section">
+            <div class="section-header">
+                <h2>📦 Inventory</h2>
+                <button class="btn btn-primary" onclick="showNewInventoryForm()">+ Add Item</button>
+            </div>
+
+            <!-- New Inventory Item Form -->
+            <div id="new-inventory-form" class="form-container" style="display: none;">
+                <div class="form-header">
+                    <h3>Add Inventory Item</h3>
+                    <button class="btn-close" onclick="hideNewInventoryForm()">×</button>
+                </div>
+
+                <form id="inventoryForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Item Name</label>
+                            <input type="text" id="itemName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Item Code</label>
+                            <input type="text" id="itemCode">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Unit Rate (₹)</label>
+                            <input type="number" id="itemRate" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Current Stock</label>
+                            <input type="number" id="itemStock" value="0" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="itemDescription" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">Add Item</button>
+                        <button type="button" class="btn btn-secondary" onclick="hideNewInventoryForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Inventory List -->
+            <div class="inventory-list">
+                <div class="list-header">
+                    <h3>All Items</h3>
+                    <button class="btn btn-info" onclick="exportInventory()">📥 Export Inventory</button>
+                </div>
+                <div id="inventoryTableContainer">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Item Code</th>
+                                <th>Item Name</th>
+                                <th>Unit Rate (₹)</th>
+                                <th>Stock</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryTableBody">
+                            <!-- Inventory items will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stock Management Section -->
+        <section id="stock-section" class="section">
+            <div class="section-header">
+                <h2>📊 Stock Management</h2>
+            </div>
+
+            <div class="stock-manager">
+                <div class="form-container">
+                    <h3>Update Stock</h3>
+                    <form id="stockForm">
+                        <div class="form-group">
+                            <label>Select Item</label>
+                            <select id="stockItemSelect" required>
+                                <option value="">-- Select Item --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Action</label>
+                                <select id="stockAction" required>
+                                    <option value="add">Add Stock</option>
+                                    <option value="remove">Remove Stock</option>
+                                    <option value="set">Set Stock</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Quantity</label>
+                                <input type="number" id="stockQuantity" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Reason/Note</label>
+                            <input type="text" id="stockReason" placeholder="e.g., Purchase, Sale, Damaged, etc.">
+                        </div>
+
+                        <button type="submit" class="btn btn-success">Update Stock</button>
+                    </form>
+                </div>
+
+                <div class="stock-history">
+                    <h3>Stock History</h3>
+                    <div id="stockHistoryContainer">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Item</th>
+                                    <th>Action</th>
+                                    <th>Quantity</th>
+                                    <th>Stock After</th>
+                                    <th>Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockHistoryBody">
+                                <!-- Stock history will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <button class="btn btn-info" onclick="exportStockHistory()">📥 Export History</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bill View Modal -->
+        <div id="billViewModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Bill Details</h2>
+                    <button class="btn-close" onclick="closeBillModal()">×</button>
+                </div>
+                <div id="billViewContent" class="bill-view">
+                    <!-- Bill details will be shown here -->
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-info" onclick="printBill()">🖨️ Print</button>
+                    <button class="btn btn-secondary" onclick="closeBillModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
