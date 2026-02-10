@@ -51,6 +51,14 @@ body {
     animation: fadeInUp 0.5s ease-out;
 }
 
+/* Force center the auth card even if other layout rules interfere */
+.auth-container .auth-form {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
 .auth-top {
     text-align: left;
     margin-bottom: 18px;
