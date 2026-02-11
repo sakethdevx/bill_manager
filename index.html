@@ -63,6 +63,7 @@
                 <button class="nav-btn active" onclick="showSection('bills')">Bills</button>
                 <button class="nav-btn" onclick="showSection('inventory')">Inventory</button>
                 <button class="nav-btn" onclick="showSection('stock')">Stock Management</button>
+                <button class="nav-btn" onclick="showSection('export')">Export</button>
             </div>
             <div class="nav-right">
                 <span class="user-info">👤 <span id="user-email"></span></span>
@@ -185,6 +186,59 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </section>
+
+        <!-- Export Section -->
+        <section id="export-section" class="section">
+            <div class="section-header">
+                <h2>📤 Data Export</h2>
+                <p class="muted">Select dataset, columns, filters and export format.</p>
+            </div>
+
+            <div class="export-panel">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Dataset</label>
+                        <select id="exportDataset">
+                            <option value="bills">Bills</option>
+                            <option value="inventory">Inventory</option>
+                            <option value="stockHistory">Stock History</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Format</label>
+                        <select id="exportFormat">
+                            <option value="csv">CSV</option>
+                            <option value="json">JSON</option>
+                            <option value="xlsx">Excel (.xlsx)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex:2">
+                        <label>Columns</label>
+                        <div id="exportColumns" class="columns-list">
+                            <!-- dynamically populated -->
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="flex:1">
+                        <label>Filters</label>
+                        <div id="exportFilters">
+                            <!-- dynamic filters -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions" style="margin-top:12px">
+                    <button class="btn btn-primary" id="previewBtn">Preview</button>
+                    <button class="btn btn-success" id="doExportBtn">Export</button>
+                </div>
+
+                <div id="exportPreview" style="margin-top:12px"></div>
             </div>
         </section>
 
@@ -347,6 +401,7 @@
     </div>
 
     <script src="supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="app.js"></script>
 </body>
 

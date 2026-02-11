@@ -35,6 +35,8 @@ async function loadAllData() {
         loadBills();
         loadStockHistory();
         generateNextInvoiceNumber();
+        // Initialize export UI when data is loaded
+        if (window.initExportSection) window.initExportSection();
     } catch (err) {
         console.error('Error loading state:', err);
     }
@@ -665,3 +667,239 @@ window.onclick = function (event) {
         closeBillModal();
     }
 }
+
+// --- Export page initialization and helpers ---
+function initExportSection() {
+    const datasetSelect = document.getElementById('exportDataset');
+    const formatSelect = document.getElementById('exportFormat');
+
+    if (!datasetSelect) return;
+
+    // Populate columns for the initial dataset
+    datasetSelect.addEventListener('change', () => {
+        renderExportColumns(datasetSelect.value);
+        renderExportFilters(datasetSelect.value);
+    });
+
+    formatSelect.addEventListener('change', () => {
+        // nothing special for now
+    });
+
+    document.getElementById('previewBtn').addEventListener('click', () => {
+        const ds = datasetSelect.value;
+        const data = getFilteredData(ds);
+        const selected = getSelectedColumns();
+        const rows = prepareRows(data, selected);
+        document.getElementById('exportPreview').innerHTML = `<p>Preview: ${rows.length} rows</p><pre style="max-height:240px;overflow:auto;background:#fafafa;padding:8px;border:1px solid #eee">${JSON.stringify(rows.slice(0, 20), null, 2)}</pre>`;
+    });
+
+    document.getElementById('doExportBtn').addEventListener('click', () => {
+        const ds = datasetSelect.value;
+        const format = formatSelect.value;
+        const data = getFilteredData(ds);
+        const selected = getSelectedColumns();
+        const rows = prepareRows(data, selected);
+        const filename = `${ds}_export_${new Date().toISOString().slice(0, 10)}`;
+        exportRows(rows, selected.map(c => c.label), format, filename);
+    });
+
+    // initial render
+    renderExportColumns(datasetSelect.value);
+    renderExportFilters(datasetSelect.value);
+}
+
+function buildColumnList(dataset) {
+    if (dataset === 'bills') {
+        return [
+            { key: 'invoiceNo', label: 'Invoice No.' },
+            { key: 'date', label: 'Date' },
+            { key: 'customer.name', label: 'Customer Name' },
+            { key: 'customer.phone', label: 'Phone' },
+            { key: 'customer.address', label: 'Address' },
+            { key: 'paymentMode', label: 'Payment Mode' },
+            { key: 'status', label: 'Status' },
+            { key: 'items', label: 'Items (summary)' },
+            { key: 'total', label: 'Total Amount' },
+            { key: 'timestamp', label: 'Saved At' }
+        ];
+    } else if (dataset === 'inventory') {
+        return [
+            { key: 'code', label: 'Item Code' },
+            { key: 'name', label: 'Item Name' },
+            { key: 'rate', label: 'Unit Rate' },
+            { key: 'stock', label: 'Stock' },
+            { key: 'description', label: 'Description' },
+            { key: 'id', label: 'Internal ID' }
+        ];
+    } else if (dataset === 'stockHistory') {
+        return [
+            { key: 'timestamp', label: 'Date & Time' },
+            { key: 'itemName', label: 'Item' },
+            { key: 'action', label: 'Action' },
+            { key: 'quantity', label: 'Quantity' },
+            { key: 'stockAfter', label: 'Stock After' },
+            { key: 'reason', label: 'Reason' }
+        ];
+    }
+    return [];
+}
+
+function renderExportColumns(dataset) {
+    const container = document.getElementById('exportColumns');
+    container.innerHTML = '';
+    const cols = buildColumnList(dataset);
+    cols.forEach(col => {
+        const id = 'col_' + col.key.replace(/\./g, '_');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'col-option';
+        wrapper.innerHTML = `<label><input type="checkbox" id="${id}" data-key="${col.key}" checked> ${col.label}</label>`;
+        container.appendChild(wrapper);
+    });
+}
+
+function renderExportFilters(dataset) {
+    const container = document.getElementById('exportFilters');
+    container.innerHTML = '';
+    if (dataset === 'bills') {
+        container.innerHTML = `
+            <label>Date From</label>
+            <input type="date" id="filter_date_from">
+            <label>Date To</label>
+            <input type="date" id="filter_date_to">
+            <label>Status</label>
+            <select id="filter_status"><option value="">Any</option><option>Paid</option><option>Unpaid</option><option>Pending</option></select>
+            <label>Search</label>
+            <input type="text" id="filter_search" placeholder="Invoice / Customer / Item">
+        `;
+    } else if (dataset === 'inventory') {
+        container.innerHTML = `
+            <label>Search</label>
+            <input type="text" id="filter_search" placeholder="Name or Code">
+        `;
+    } else if (dataset === 'stockHistory') {
+        container.innerHTML = `
+            <label>Date From</label>
+            <input type="date" id="filter_date_from">
+            <label>Date To</label>
+            <input type="date" id="filter_date_to">
+            <label>Item</label>
+            <select id="filter_item"><option value="">Any</option>${inventory.map(i => `<option value="${i.id}">${i.name}</option>`).join('')}</select>
+        `;
+    }
+}
+
+function getSelectedColumns() {
+    const container = document.getElementById('exportColumns');
+    const checks = Array.from(container.querySelectorAll('input[type=checkbox]'));
+    return checks.filter(c => c.checked).map(c => ({ key: c.dataset.key, label: c.parentNode.textContent.trim() }));
+}
+
+function getFilteredData(dataset) {
+    if (dataset === 'bills') {
+        let data = bills.slice();
+        const from = document.getElementById('filter_date_from') ? document.getElementById('filter_date_from').value : '';
+        const to = document.getElementById('filter_date_to') ? document.getElementById('filter_date_to').value : '';
+        const status = document.getElementById('filter_status') ? document.getElementById('filter_status').value : '';
+        const search = document.getElementById('filter_search') ? (document.getElementById('filter_search').value || '').toLowerCase() : '';
+
+        if (from) data = data.filter(d => d.date >= from);
+        if (to) data = data.filter(d => d.date <= to);
+        if (status) data = data.filter(d => (d.status || '').toLowerCase() === status.toLowerCase());
+        if (search) data = data.filter(d => (d.invoiceNo && d.invoiceNo.toLowerCase().includes(search)) || (d.customer && d.customer.name && d.customer.name.toLowerCase().includes(search)) || (d.items && d.items.some(it => it.name && it.name.toLowerCase().includes(search))));
+        return data;
+    } else if (dataset === 'inventory') {
+        let data = inventory.slice();
+        const search = document.getElementById('filter_search') ? (document.getElementById('filter_search').value || '').toLowerCase() : '';
+        if (search) data = data.filter(i => (i.name && i.name.toLowerCase().includes(search)) || (i.code && i.code.toLowerCase().includes(search)));
+        return data;
+    } else if (dataset === 'stockHistory') {
+        let data = stockHistory.slice();
+        const from = document.getElementById('filter_date_from') ? document.getElementById('filter_date_from').value : '';
+        const to = document.getElementById('filter_date_to') ? document.getElementById('filter_date_to').value : '';
+        const item = document.getElementById('filter_item') ? document.getElementById('filter_item').value : '';
+        if (from) data = data.filter(d => d.timestamp >= from);
+        if (to) data = data.filter(d => d.timestamp <= to);
+        if (item) data = data.filter(d => d.itemId === item);
+        return data;
+    }
+    return [];
+}
+
+function getValueByPath(obj, path) {
+    if (!path) return '';
+    if (path === 'items') {
+        if (!obj.items) return '';
+        return obj.items.map(it => `${it.name || ''} (${it.qty}x${it.rate})`).join('; ');
+    }
+    const parts = path.split('.');
+    let cur = obj;
+    for (const p of parts) {
+        if (!cur) return '';
+        cur = cur[p];
+    }
+    if (cur === undefined || cur === null) return '';
+    return cur;
+}
+
+function prepareRows(data, columns) {
+    return data.map(item => {
+        const row = {};
+        columns.forEach(c => {
+            row[c.label] = getValueByPath(item, c.key);
+        });
+        return row;
+    });
+}
+
+function exportRows(rows, headers, format, filename) {
+    if (!rows || rows.length === 0) {
+        alert('No rows to export');
+        return;
+    }
+
+    if (format === 'json') {
+        const blob = new Blob([JSON.stringify(rows, null, 2)], { type: 'application/json' });
+        downloadBlob(blob, filename + '.json');
+        return;
+    }
+
+    if (format === 'csv') {
+        const cols = Object.keys(rows[0]);
+        const csv = [cols.join(',')].concat(rows.map(r => cols.map(c => `"${String(r[c] || '').replace(/"/g, '""')}"`).join(','))).join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        downloadBlob(blob, filename + '.csv');
+        return;
+    }
+
+    if (format === 'xlsx') {
+        if (window.XLSX) {
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Export');
+            XLSX.writeFile(wb, filename + '.xlsx');
+            return;
+        } else {
+            // fallback to CSV
+            const cols = Object.keys(rows[0]);
+            const csv = [cols.join(',')].concat(rows.map(r => cols.map(c => `"${String(r[c] || '').replace(/"/g, '""')}"`).join(','))).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            downloadBlob(blob, filename + '.csv');
+            return;
+        }
+    }
+}
+
+function downloadBlob(blob, filename) {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+
+// Backwards-compatible quick export functions reuse existing CSV exporters but keep them available
+
