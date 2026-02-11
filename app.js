@@ -8,6 +8,12 @@ let currentBillItems = [];
 let currentBill = null;
 // Export initialization flag
 let exportInitialized = false;
+// Bills UI state
+let billsSearch = '';
+let billsPage = 1;
+let billsPerPage = 10;
+let billsSortKey = null;
+let billsSortDir = 'asc';
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', function () {
@@ -39,6 +45,7 @@ async function loadAllData() {
         generateNextInvoiceNumber();
         // Initialize export UI when data is loaded
         if (window.initExportSection) window.initExportSection();
+        if (window.initBillsControls) window.initBillsControls();
     } catch (err) {
         console.error('Error loading state:', err);
     }
@@ -271,12 +278,36 @@ document.getElementById('billForm').addEventListener('submit', function (e) {
 function loadBills() {
     const tbody = document.getElementById('billsTableBody');
 
-    if (bills.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><p>No bills found. Create your first bill!</p></td></tr>';
-        return;
+    // Apply search filter
+    let items = bills.slice();
+    if (billsSearch) {
+        const q = billsSearch.toLowerCase();
+        items = items.filter(b => (b.invoiceNo && b.invoiceNo.toLowerCase().includes(q)) || (b.customer && b.customer.name && b.customer.name.toLowerCase().includes(q)) || (b.items && b.items.some(it => it.name && it.name.toLowerCase().includes(q))));
     }
 
-    tbody.innerHTML = bills.map(bill => `
+    // Sorting
+    if (billsSortKey) {
+        items.sort((a, b) => {
+            const va = getValueByPath(a, billsSortKey);
+            const vb = getValueByPath(b, billsSortKey);
+            if (va == null) return 1;
+            if (vb == null) return -1;
+            if (typeof va === 'number' && typeof vb === 'number') return billsSortDir === 'asc' ? va - vb : vb - va;
+            return billsSortDir === 'asc' ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+        });
+    }
+
+    const total = items.length;
+    const per = parseInt(billsPerPage) || 10;
+    const pages = Math.max(1, Math.ceil(total / per));
+    if (billsPage > pages) billsPage = pages;
+    const start = (billsPage - 1) * per;
+    const pageItems = items.slice(start, start + per);
+
+    if (items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><p>No bills found. Create your first bill!</p></td></tr>';
+    } else {
+        tbody.innerHTML = pageItems.map(bill => `
         <tr>
             <td><strong>${bill.invoiceNo}</strong></td>
             <td>${formatDate(bill.date)}</td>
@@ -291,6 +322,15 @@ function loadBills() {
             </td>
         </tr>
     `).join('');
+    }
+
+    // Update pagination info
+    const info = document.getElementById('billsPaginationInfo');
+    if (info) info.textContent = `Showing ${Math.min(total, start + 1)}-${Math.min(total, start + per)} of ${total}`;
+    const prev = document.getElementById('billsPrev');
+    const next = document.getElementById('billsNext');
+    if (prev) prev.disabled = billsPage <= 1;
+    if (next) next.disabled = billsPage >= pages;
 }
 
 function viewBill(billId) {
@@ -372,6 +412,40 @@ function viewBill(billId) {
 
     document.getElementById('billViewContent').innerHTML = content;
     document.getElementById('billViewModal').classList.add('active');
+}
+
+// Download PDF of current bill using jsPDF
+function downloadBillPDF() {
+    if (!currentBill) { alert('No bill selected'); return; }
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+        doc.setFontSize(18);
+        doc.setTextColor('#2563eb');
+        doc.text('BALAJI SAI AUTO MOBILES', 40, 50);
+
+        doc.setFontSize(12);
+        doc.setTextColor('#000');
+        doc.text(`Invoice: ${currentBill.invoiceNo}`, 40, 80);
+        doc.text(`Date: ${formatDate(currentBill.date)}`, 40, 96);
+        doc.text(`Customer: ${currentBill.customer.name}`, 40, 112);
+        doc.text(`Phone: ${currentBill.customer.phone || 'N/A'}`, 40, 128);
+
+        const cols = ['S.No', 'Particulars', 'Qty', 'Unit Rate', 'Amount'];
+        const rows = currentBill.items.map((it, idx) => [idx + 1, it.name, String(it.qty), `₹${it.rate.toFixed(2)}`, `₹${it.amount.toFixed(2)}`]);
+
+        doc.autoTable({ startY: 150, head: [cols], body: rows, styles: { fontSize: 10 } });
+
+        const finalY = doc.lastAutoTable.finalY || 300;
+        doc.setFontSize(14);
+        doc.text(`Total: ₹${currentBill.total.toFixed(2)}`, 40, finalY + 30);
+
+        doc.save(`Invoice_${currentBill.invoiceNo}.pdf`);
+    } catch (err) {
+        console.error('PDF export error', err);
+        alert('Unable to generate PDF. Check console for details.');
+    }
 }
 
 function closeBillModal() {
@@ -721,6 +795,78 @@ function initExportSection() {
     // initial render
     renderExportColumns(datasetSelect.value);
     renderExportFilters(datasetSelect.value);
+}
+
+// --- Bills UI Controls: search, pagination, sorting, resizing ---
+function debounce(fn, wait) {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), wait); };
+}
+
+function initBillsControls() {
+    const search = document.getElementById('billsSearch');
+    const perSelect = document.getElementById('billsPerPage');
+    const prev = document.getElementById('billsPrev');
+    const next = document.getElementById('billsNext');
+
+    if (search) {
+        search.value = billsSearch || '';
+        search.addEventListener('input', debounce((e) => { billsSearch = e.target.value; billsPage = 1; loadBills(); }, 250));
+    }
+
+    if (perSelect) {
+        perSelect.value = String(billsPerPage);
+        perSelect.addEventListener('change', (e) => { billsPerPage = parseInt(e.target.value); billsPage = 1; loadBills(); });
+    }
+
+    if (prev) prev.addEventListener('click', () => { if (billsPage > 1) { billsPage--; loadBills(); } });
+    if (next) next.addEventListener('click', () => { billsPage++; loadBills(); });
+
+    // Sorting by clicking header
+    const headers = document.querySelectorAll('#billsTableContainer thead th.sortable');
+    headers.forEach(h => {
+        h.style.cursor = 'pointer';
+        h.addEventListener('click', () => {
+            const key = h.dataset.key;
+            sortBills(key);
+            // visual indicator
+            headers.forEach(x => x.classList.remove('sorted-asc', 'sorted-desc'));
+            h.classList.add(billsSortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        });
+    });
+
+    // Make columns resizable
+    makeTableResizable(document.querySelector('#billsTableContainer table'));
+}
+
+function sortBills(key) {
+    if (billsSortKey === key) billsSortDir = billsSortDir === 'asc' ? 'desc' : 'asc';
+    else { billsSortKey = key; billsSortDir = 'asc'; }
+    loadBills();
+}
+
+function makeTableResizable(table) {
+    if (!table) return;
+    const ths = table.querySelectorAll('th');
+    ths.forEach(th => {
+        const resizer = th.querySelector('.th-resizer');
+        if (!resizer) return;
+        resizer.style.display = 'inline-block';
+        resizer.style.width = '8px';
+        resizer.style.height = '100%';
+        resizer.style.float = 'right';
+        resizer.style.cursor = 'col-resize';
+        resizer.addEventListener('mousedown', initResize);
+        function initResize(e) {
+            e.preventDefault();
+            const startX = e.clientX;
+            const startWidth = th.offsetWidth;
+            function onMove(ev) { th.style.width = (startWidth + (ev.clientX - startX)) + 'px'; }
+            function onUp() { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        }
+    });
 }
 
 function buildColumnList(dataset) {
