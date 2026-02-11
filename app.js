@@ -6,6 +6,8 @@ let inventory = [];
 let stockHistory = [];
 let currentBillItems = [];
 let currentBill = null;
+// Export initialization flag
+let exportInitialized = false;
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', function () {
@@ -83,6 +85,10 @@ function showSection(sectionName) {
     // Show selected section
     document.getElementById(sectionName + '-section').classList.add('active');
 
+    // Ensure export UI is rendered when user opens the Export section
+    if (sectionName === 'export') {
+        if (window.initExportSection) window.initExportSection();
+    }
     // Add active class to clicked button
     event.target.classList.add('active');
 }
@@ -674,6 +680,15 @@ function initExportSection() {
     const formatSelect = document.getElementById('exportFormat');
 
     if (!datasetSelect) return;
+
+    // Prevent double initialization of event listeners
+    if (exportInitialized) {
+        // still refresh columns/filters in case data changed
+        renderExportColumns(datasetSelect.value);
+        renderExportFilters(datasetSelect.value);
+        return;
+    }
+    exportInitialized = true;
 
     // Populate columns for the initial dataset
     datasetSelect.addEventListener('change', () => {
