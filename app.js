@@ -570,7 +570,7 @@ function downloadBillPDF() {
         const tableStartY = currentY + 15;
         const cols = ['#', 'Description', 'Qty', 'Unit Price', 'Amount'];
         const rows = currentBill.items.map((it, idx) => [
-            String(idx + 1), 
+            idx + 1, 
             it.name, 
             String(it.qty), 
             `₹${it.rate.toFixed(2)}`, 
@@ -776,7 +776,7 @@ function downloadBillsPDF(billsToExport, filename) {
             const tableStartY = currentY + 15;
             const cols = ['#', 'Description', 'Qty', 'Unit Price', 'Amount'];
             const rows = bill.items.map((it, idx) => [
-                String(idx + 1), 
+                idx + 1, 
                 it.name, 
                 String(it.qty), 
                 `₹${it.rate.toFixed(2)}`, 
