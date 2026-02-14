@@ -868,6 +868,41 @@ input[type="search"]:focus,
     gap: 15px;
 }
 
+/* Footer for tables (pagination) */
+.table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+}
+
+.pagination-info {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 8px;
+}
+
+/* layout helpers */
+.flex-2 {
+    flex: 2;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.mt-12 {
+    margin-top: 12px;
+}
+
 .data-table {
     width: 100%;
     background: var(--white);

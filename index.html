@@ -113,8 +113,7 @@
             </div>
             <div class="nav-right">
                 <span class="user-info">👤 <span id="user-email"></span></span>
-                <select class="language-select" aria-label="Language selector"
-                    style="margin-right:8px;padding:6px 8px;border-radius:6px;border:1px solid var(--border-color)">
+                <select class="language-select" aria-label="Language selector">
                     <option value="en">EN</option>
                     <option value="te">తెలుగు</option>
                 </select>
@@ -254,10 +253,9 @@
                             <!-- Bills will be loaded here -->
                         </tbody>
                     </table>
-                    <div
-                        style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:8px 12px;background:#fff;border-radius:8px;box-shadow:var(--shadow);">
-                        <div id="billsPaginationInfo" style="color:var(--text-secondary)"></div>
-                        <div>
+                    <div class="table-footer">
+                        <div id="billsPaginationInfo" class="pagination-info muted"></div>
+                        <div class="pagination-controls">
                             <button class="btn" id="billsPrev">Prev</button>
                             <button class="btn" id="billsNext">Next</button>
                         </div>
@@ -295,14 +293,14 @@
                 </div>
 
                 <div class="form-row">
-                    <div class="form-group" style="flex:2">
+                    <div class="form-group flex-2">
                         <label>Columns</label>
                         <div id="exportColumns" class="columns-list">
                             <!-- dynamically populated -->
                         </div>
                     </div>
 
-                    <div class="form-group" style="flex:1">
+                    <div class="form-group flex-1">
                         <label>Filters</label>
                         <div id="exportFilters">
                             <!-- dynamic filters -->
@@ -310,12 +308,12 @@
                     </div>
                 </div>
 
-                <div class="form-actions" style="margin-top:12px">
+                <div class="form-actions mt-12">
                     <button class="btn btn-primary" id="previewBtn">Preview</button>
                     <button class="btn btn-success" id="doExportBtn">Export</button>
                 </div>
 
-                <div id="exportPreview" style="margin-top:12px"></div>
+                <div id="exportPreview" class="mt-12"></div>
             </div>
         </section>
 
