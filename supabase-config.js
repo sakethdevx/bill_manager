@@ -50,6 +50,50 @@
             console.error('Error processing auth redirect:', e);
         }
 
+        // Helper to detect recovery links (type=recovery) in query or hash
+        function urlHasRecoveryType() {
+            try {
+                const href = location.href || '';
+                return /([?&#])type=recovery(\b|&|$)/.test(href);
+            } catch (e) { return false; }
+        }
+
+        // Show in-page password reset prompt if landing from a recovery link
+        if (urlHasRecoveryType()) {
+            try {
+                // ensure modal exists in DOM (we added one in index.html)
+                const modal = document.getElementById('password-reset-modal');
+                if (modal) modal.style.display = 'flex';
+            } catch (e) {
+                console.warn('Unable to show password reset modal:', e);
+            }
+        }
+
+        // Complete password reset: read fields and call Supabase updateUser
+        window.completePasswordReset = async function () {
+            const pwd = document.getElementById('reset-password') ? document.getElementById('reset-password').value : null;
+            const pwd2 = document.getElementById('reset-password-confirm') ? document.getElementById('reset-password-confirm').value : null;
+            if (!pwd || !pwd2) return alert('Please enter and confirm your new password.');
+            if (pwd !== pwd2) return alert('Passwords do not match.');
+
+            try {
+                const { error } = await window.supabaseClient.auth.updateUser({ password: pwd });
+                if (error) {
+                    alert('Unable to update password: ' + error.message);
+                } else {
+                    alert('Password updated successfully. You may need to sign in again.');
+                    document.getElementById('password-reset-modal').style.display = 'none';
+                    // Optionally sign out so the user can re-authenticate
+                    try { await window.supabaseClient.auth.signOut(); } catch (e) { }
+                    // Redirect to root of the site
+                    location.href = '/';
+                }
+            } catch (e) {
+                console.error('Error updating password:', e);
+                alert('Password update failed. See console for details.');
+            }
+        };
+
         // Attach sign in/out functions globally for existing HTML
         window.supabaseSignIn = async function (email, password) {
             const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });

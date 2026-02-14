@@ -52,6 +52,31 @@
         </div>
     </div>
 
+    <!-- Password Reset Modal (hidden by default) -->
+    <div id="password-reset-modal" class="modal"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:9999;">
+        <div class="modal-content"
+            style="background:#fff;padding:20px;border-radius:8px;max-width:420px;width:100%;box-shadow:var(--shadow);">
+            <h3>Reset your password</h3>
+            <p>Enter a new password for your account.</p>
+            <div class="form-group">
+                <label for="reset-password">New password</label>
+                <input id="reset-password" type="password" placeholder="New password"
+                    style="width:100%;padding:8px;margin-top:6px;border:1px solid #ddd;border-radius:6px;">
+            </div>
+            <div class="form-group">
+                <label for="reset-password-confirm">Confirm password</label>
+                <input id="reset-password-confirm" type="password" placeholder="Confirm password"
+                    style="width:100%;padding:8px;margin-top:6px;border:1px solid #ddd;border-radius:6px;">
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+                <button class="btn"
+                    onclick="document.getElementById('password-reset-modal').style.display='none'">Cancel</button>
+                <button class="btn btn-primary" onclick="completePasswordReset()">Update password</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Application Container -->
     <div id="app-container" class="container" style="display: none;">
         <!-- Navigation -->
