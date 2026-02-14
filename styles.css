@@ -230,17 +230,28 @@ body {
     }
 }
 
-/* Language selector positioning in auth header */
+/* Language selector positioning in auth header - mobile first */
 .auth-language-selector {
-    position: absolute;
-    right: 16px;
-    top: 16px;
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+    margin-bottom: 8px;
 }
 
 .auth-language-selector .language-select {
     padding: 6px 8px;
     border-radius: 6px;
     border: 1px solid var(--border-color);
+}
+
+/* Desktop: position language selector absolutely */
+@media (min-width: 481px) {
+    .auth-language-selector {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        margin: 0;
+    }
 }
 
 /* Mobile-specific fixes for login page */
@@ -260,15 +271,6 @@ body {
     .auth-right {
         padding: 20px;
         position: relative;
-    }
-
-    /* Fix language selector positioning on mobile */
-    .auth-language-selector {
-        position: static;
-        display: flex;
-        justify-content: center;
-        margin-top: 12px;
-        margin-bottom: 8px;
     }
 
     .auth-header {
