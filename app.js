@@ -500,12 +500,32 @@ function hideNewInventoryForm() {
     document.getElementById('inventoryForm').reset();
 }
 
+// Generate a short sequential item code (ITM001, ITM002...).
+// Scans existing `inventory` for numeric ITM codes and returns next available.
+function generateNextItemCode() {
+    try {
+        let max = 0;
+        inventory.forEach(i => {
+            const m = String(i.code || '').match(/^ITM(\d+)$/i);
+            if (m && m[1]) {
+                const n = parseInt(m[1], 10);
+                if (!isNaN(n) && n > max) max = n;
+            }
+        });
+        const next = max + 1;
+        return 'ITM' + String(next).padStart(3, '0');
+    } catch (e) {
+        // fallback to short random code
+        return 'ITM' + Math.random().toString(36).substr(2, 4).toUpperCase();
+    }
+}
+
 document.getElementById('inventoryForm').addEventListener('submit', function (e) {
     e.preventDefault();
     const item = {
         id: uid('item'),
-        // Use shorter, human-friendly auto-generated code when not provided
-        code: document.getElementById('itemCode').value || `ITM${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+        // Use shorter, sequential auto-generated code when not provided
+        code: document.getElementById('itemCode').value || generateNextItemCode(),
         name: document.getElementById('itemName').value,
         rate: parseFloat(document.getElementById('itemRate').value),
         stock: parseInt(document.getElementById('itemStock').value) || 0,
