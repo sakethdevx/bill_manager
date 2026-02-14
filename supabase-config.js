@@ -37,6 +37,19 @@
             updateUI();
         });
 
+        // If the user landed here from an email auth link, consume the URL and store the session
+        try {
+            const { data: urlData, error: urlError } = await auth.getSessionFromUrl({ storeSession: true });
+            if (urlError) {
+                console.warn('getSessionFromUrl error:', urlError.message);
+            } else if (urlData && urlData.session) {
+                // Session was recovered from URL and stored by the client
+                console.info('Auth session restored from URL');
+            }
+        } catch (e) {
+            console.error('Error processing auth redirect:', e);
+        }
+
         // Attach sign in/out functions globally for existing HTML
         window.supabaseSignIn = async function (email, password) {
             const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
