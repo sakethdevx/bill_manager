@@ -199,11 +199,8 @@ body {
     width: 100%;
 }
 
-.data-table th:nth-child(1),
-.data-table td:nth-child(1) {
-    /* Default: allow column to size naturally. Specific tables that need code-width
-       will override this below (inventory table). */
-}
+/* Default: allow column to size naturally. Specific tables that need code-width
+   will override this below (inventory table). */
 
 /* Item code sizing only for inventory table first column */
 #inventoryTableContainer .data-table th:nth-child(1),
@@ -1153,6 +1150,23 @@ input[style] {
 #billsTableContainer .table-actions {
     justify-content: flex-end;
     gap: 8px;
+}
+
+/* Strong, page-scoped override for Bills action buttons to ensure visibility */
+#billsTableContainer td.table-actions .btn-view {
+    background: var(--info-color) !important;
+    color: var(--white) !important;
+    border: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-flex !important;
+    pointer-events: auto !important;
+}
+
+#billsTableContainer td.table-actions .btn-delete {
+    display: inline-flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
 .table-actions button {
