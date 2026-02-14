@@ -1,18 +1,19 @@
 // Bill Manager Application
 
-// PDF Design Constants
+// PDF Design Constants - Elegant and Professional
 const PDF_COLORS = {
-    PRIMARY_BLUE: [37, 99, 235],
+    PRIMARY_DARK: [45, 55, 72],        // Dark slate for headers
+    ACCENT_BLUE: [71, 85, 105],        // Muted blue for accents
     WHITE: [255, 255, 255],
-    GRAY_LIGHT: [200, 200, 200],
-    GRAY_MEDIUM: [100, 100, 100],
-    GRAY_DARK: [60, 60, 60],
-    TEXT_DARK: [0, 0, 0],
-    TEXT_LIGHT: [120, 120, 120],
-    GREEN: [22, 163, 74],
-    YELLOW: [234, 179, 8],
-    RED: [239, 68, 68],
-    BG_LIGHT: [249, 250, 251]
+    BORDER_LIGHT: [226, 232, 240],     // Light border
+    BORDER_MEDIUM: [203, 213, 225],    // Medium border
+    TEXT_PRIMARY: [15, 23, 42],        // Almost black for text
+    TEXT_SECONDARY: [100, 116, 139],   // Gray for secondary text
+    TEXT_MUTED: [148, 163, 184],       // Muted gray
+    BG_SUBTLE: [248, 250, 252],        // Very light background
+    STATUS_PAID: [34, 197, 94],        // Green
+    STATUS_PENDING: [251, 146, 60],    // Orange
+    STATUS_OTHER: [239, 68, 68]        // Red
 };
 
 // Data Storage
@@ -461,99 +462,115 @@ function downloadBillPDF() {
         const doc = new jsPDF({ unit: 'pt', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 50;
 
-        // Header background
-        doc.setFillColor(...PDF_COLORS.PRIMARY_BLUE);
-        doc.rect(0, 0, pageWidth, 100, 'F');
+        // Elegant top border
+        doc.setDrawColor(...PDF_COLORS.PRIMARY_DARK);
+        doc.setLineWidth(3);
+        doc.line(margin, 40, pageWidth - margin, 40);
         
-        // Company name
-        doc.setFontSize(24);
-        doc.setTextColor(...PDF_COLORS.WHITE);
+        // Company name - elegant and refined
+        doc.setFontSize(22);
+        doc.setTextColor(...PDF_COLORS.PRIMARY_DARK);
         doc.setFont(undefined, 'bold');
-        doc.text('BALAJI SAI AUTO MOBILES', 40, 45);
-        
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text('Auto Nagar, Eluru Road, JANGAREDDYGUDEM', 40, 70);
-
-        // Invoice title
-        doc.setFontSize(20);
-        doc.setTextColor(...PDF_COLORS.PRIMARY_BLUE);
-        doc.setFont(undefined, 'bold');
-        doc.text('INVOICE', pageWidth - 150, 45);
-
-        // Invoice details box (right side)
-        doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
-        doc.setLineWidth(1);
-        doc.rect(pageWidth - 230, 120, 190, 80);
-        
-        doc.setFontSize(10);
-        doc.setTextColor(...PDF_COLORS.GRAY_MEDIUM);
-        doc.setFont(undefined, 'bold');
-        doc.text('Invoice No:', pageWidth - 220, 140);
-        doc.text('Date:', pageWidth - 220, 165);
-        
-        doc.setTextColor(...PDF_COLORS.TEXT_DARK);
-        doc.setFont(undefined, 'normal');
-        doc.text(currentBill.invoiceNo, pageWidth - 220, 152);
-        doc.text(formatDate(currentBill.date), pageWidth - 220, 177);
-
-        // Customer details box (left side)
-        doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
-        doc.rect(40, 120, 300, 120);
-        
-        doc.setFontSize(12);
-        doc.setTextColor(...PDF_COLORS.PRIMARY_BLUE);
-        doc.setFont(undefined, 'bold');
-        doc.text('BILL TO', 50, 140);
-        
-        doc.setFontSize(10);
-        doc.setTextColor(...PDF_COLORS.TEXT_DARK);
-        doc.setFont(undefined, 'bold');
-        doc.text(currentBill.customer.name, 50, 160);
-        
-        doc.setFont(undefined, 'normal');
-        doc.setTextColor(...PDF_COLORS.GRAY_DARK);
-        const addressLines = doc.splitTextToSize(currentBill.customer.address || 'N/A', 280);
-        doc.text(addressLines, 50, 175);
-        
-        const phoneY = 175 + (addressLines.length * 12);
-        doc.text(`Phone: ${currentBill.customer.phone || 'N/A'}`, 50, phoneY);
-
-        // Additional details box
-        let detailsY = Math.max(240, phoneY + 30);
-        doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
-        doc.rect(40, detailsY, pageWidth - 80, 50);
+        doc.text('BALAJI SAI AUTO MOBILES', margin, 65);
         
         doc.setFontSize(9);
-        doc.setTextColor(...PDF_COLORS.GRAY_MEDIUM);
-        doc.setFont(undefined, 'bold');
-        doc.text('Transport:', 50, detailsY + 20);
-        doc.text('Payment Mode:', 220, detailsY + 20);
-        doc.text('Status:', 400, detailsY + 20);
-        
-        doc.setTextColor(...PDF_COLORS.TEXT_DARK);
+        doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
         doc.setFont(undefined, 'normal');
-        doc.text(currentBill.transport || 'N/A', 50, detailsY + 35);
-        doc.text(currentBill.paymentMode || 'N/A', 220, detailsY + 35);
+        doc.text('Auto Nagar, Eluru Road, JANGAREDDYGUDEM', margin, 82);
+
+        // Invoice title - right aligned, elegant
+        doc.setFontSize(28);
+        doc.setTextColor(...PDF_COLORS.TEXT_MUTED);
+        doc.setFont(undefined, 'bold');
+        doc.text('INVOICE', pageWidth - margin, 65, { align: 'right' });
+
+        // Thin separator line
+        doc.setDrawColor(...PDF_COLORS.BORDER_LIGHT);
+        doc.setLineWidth(0.5);
+        doc.line(margin, 95, pageWidth - margin, 95);
+
+        // Invoice details - clean layout
+        let currentY = 120;
+        doc.setFontSize(9);
+        doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
+        doc.setFont(undefined, 'bold');
+        doc.text('INVOICE NUMBER', pageWidth - margin - 150, currentY, { align: 'right' });
+        doc.text('DATE', pageWidth - margin - 150, currentY + 20, { align: 'right' });
         
-        // Status with color
+        doc.setTextColor(...PDF_COLORS.TEXT_PRIMARY);
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(10);
+        doc.text(currentBill.invoiceNo, pageWidth - margin, currentY, { align: 'right' });
+        doc.text(formatDate(currentBill.date), pageWidth - margin, currentY + 20, { align: 'right' });
+
+        // Bill To section - refined
+        currentY = 120;
+        doc.setFontSize(9);
+        doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
+        doc.setFont(undefined, 'bold');
+        doc.text('BILL TO', margin, currentY);
+        
+        currentY += 18;
+        doc.setFontSize(11);
+        doc.setTextColor(...PDF_COLORS.TEXT_PRIMARY);
+        doc.setFont(undefined, 'bold');
+        doc.text(currentBill.customer.name, margin, currentY);
+        
+        currentY += 15;
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
+        const addressLines = doc.splitTextToSize(currentBill.customer.address || 'N/A', 250);
+        doc.text(addressLines, margin, currentY);
+        
+        currentY += (addressLines.length * 12) + 10;
+        doc.text(`Phone: ${currentBill.customer.phone || 'N/A'}`, margin, currentY);
+
+        // Additional details - single row, clean
+        currentY += 35;
+        doc.setDrawColor(...PDF_COLORS.BORDER_LIGHT);
+        doc.setLineWidth(0.5);
+        doc.line(margin, currentY, pageWidth - margin, currentY);
+        
+        currentY += 18;
+        doc.setFontSize(8);
+        doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
+        doc.setFont(undefined, 'bold');
+        doc.text('TRANSPORT', margin, currentY);
+        doc.text('PAYMENT METHOD', margin + 180, currentY);
+        doc.text('STATUS', margin + 360, currentY);
+        
+        currentY += 12;
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(...PDF_COLORS.TEXT_PRIMARY);
+        doc.text(currentBill.transport || 'N/A', margin, currentY);
+        doc.text(currentBill.paymentMode || 'N/A', margin + 180, currentY);
+        
+        // Status with subtle color
         const status = currentBill.status || 'N/A';
         if (status.toLowerCase() === 'paid') {
-            doc.setTextColor(...PDF_COLORS.GREEN);
+            doc.setTextColor(...PDF_COLORS.STATUS_PAID);
         } else if (status.toLowerCase() === 'pending') {
-            doc.setTextColor(...PDF_COLORS.YELLOW);
+            doc.setTextColor(...PDF_COLORS.STATUS_PENDING);
         } else {
-            doc.setTextColor(...PDF_COLORS.RED);
+            doc.setTextColor(...PDF_COLORS.STATUS_OTHER);
         }
         doc.setFont(undefined, 'bold');
-        doc.text(status, 400, detailsY + 35);
+        doc.text(status, margin + 360, currentY);
 
-        // Items table
-        const tableStartY = detailsY + 70;
-        const cols = ['S.No', 'Particulars', 'Qty', 'Unit Rate', 'Amount'];
+        currentY += 18;
+        doc.setDrawColor(...PDF_COLORS.BORDER_LIGHT);
+        doc.setLineWidth(0.5);
+        doc.line(margin, currentY, pageWidth - margin, currentY);
+
+        // Items table - elegant and clean
+        const tableStartY = currentY + 15;
+        const cols = ['#', 'Description', 'Qty', 'Unit Price', 'Amount'];
         const rows = currentBill.items.map((it, idx) => [
-            idx + 1, 
+            String(idx + 1), 
             it.name, 
             String(it.qty), 
             `₹${it.rate.toFixed(2)}`, 
@@ -564,57 +581,65 @@ function downloadBillPDF() {
             startY: tableStartY, 
             head: [cols], 
             body: rows,
-            theme: 'striped',
+            theme: 'plain',
             headStyles: {
-                fillColor: PDF_COLORS.PRIMARY_BLUE,
-                textColor: PDF_COLORS.WHITE[0],
-                fontSize: 10,
+                fillColor: PDF_COLORS.BG_SUBTLE,
+                textColor: PDF_COLORS.TEXT_SECONDARY,
+                fontSize: 9,
                 fontStyle: 'bold',
-                halign: 'center'
+                halign: 'left',
+                cellPadding: 8
             },
             bodyStyles: {
                 fontSize: 9,
-                textColor: PDF_COLORS.GRAY_DARK
-            },
-            alternateRowStyles: {
-                fillColor: PDF_COLORS.BG_LIGHT
+                textColor: PDF_COLORS.TEXT_PRIMARY,
+                cellPadding: 8
             },
             columnStyles: {
-                0: { halign: 'center', cellWidth: 50 },
+                0: { halign: 'center', cellWidth: 30 },
                 1: { cellWidth: 'auto' },
-                2: { halign: 'center', cellWidth: 60 },
-                3: { halign: 'right', cellWidth: 90 },
-                4: { halign: 'right', cellWidth: 100 }
+                2: { halign: 'center', cellWidth: 50 },
+                3: { halign: 'right', cellWidth: 80 },
+                4: { halign: 'right', cellWidth: 90 }
             },
-            margin: { left: 40, right: 40 }
+            margin: { left: margin, right: margin },
+            didDrawPage: function(data) {
+                // Add subtle borders
+                doc.setDrawColor(...PDF_COLORS.BORDER_LIGHT);
+                doc.setLineWidth(0.5);
+            }
         });
 
-        // Total section
-        const finalY = doc.lastAutoTable.finalY || 300;
-        const totalBoxY = finalY + 20;
+        // Total section - refined and elegant
+        const finalY = doc.lastAutoTable.finalY || 400;
         
-        // Total box
-        doc.setFillColor(...PDF_COLORS.PRIMARY_BLUE);
-        doc.rect(pageWidth - 240, totalBoxY, 200, 40, 'F');
+        // Subtle separator
+        doc.setDrawColor(...PDF_COLORS.BORDER_MEDIUM);
+        doc.setLineWidth(1);
+        doc.line(pageWidth - margin - 200, finalY + 15, pageWidth - margin, finalY + 15);
         
-        doc.setFontSize(14);
-        doc.setTextColor(...PDF_COLORS.WHITE);
+        // Total amount - elegant presentation
+        doc.setFontSize(10);
+        doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
         doc.setFont(undefined, 'bold');
-        doc.text('TOTAL AMOUNT', pageWidth - 230, totalBoxY + 18);
+        doc.text('TOTAL AMOUNT', pageWidth - margin - 200, finalY + 35, { align: 'left' });
+        
         doc.setFontSize(16);
-        doc.text(`₹${currentBill.total.toFixed(2)}`, pageWidth - 230, totalBoxY + 35);
+        doc.setTextColor(...PDF_COLORS.PRIMARY_DARK);
+        doc.setFont(undefined, 'bold');
+        doc.text(`₹${currentBill.total.toFixed(2)}`, pageWidth - margin, finalY + 37, { align: 'right' });
 
-        // Footer
-        const footerY = pageHeight - 50;
-        doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
+        // Footer - minimalist and professional
+        const footerY = pageHeight - 60;
+        doc.setDrawColor(...PDF_COLORS.BORDER_LIGHT);
         doc.setLineWidth(0.5);
-        doc.line(40, footerY, pageWidth - 40, footerY);
+        doc.line(margin, footerY, pageWidth - margin, footerY);
         
         doc.setFontSize(8);
-        doc.setTextColor(...PDF_COLORS.TEXT_LIGHT);
+        doc.setTextColor(...PDF_COLORS.TEXT_MUTED);
         doc.setFont(undefined, 'normal');
-        doc.text('Thank you for your business!', pageWidth / 2, footerY + 15, { align: 'center' });
-        doc.text('For any queries, please contact us at the above address', pageWidth / 2, footerY + 27, { align: 'center' });
+        doc.text('Thank you for your business', pageWidth / 2, footerY + 15, { align: 'center' });
+        doc.text('For inquiries, please contact us at the address above', pageWidth / 2, footerY + 27, { align: 'center' });
 
         doc.save(`Invoice_${currentBill.invoiceNo}.pdf`);
     } catch (err) {
@@ -638,104 +663,120 @@ function downloadBillsPDF(billsToExport, filename) {
         const doc = new jsPDF({ unit: 'pt', format: 'a4' });
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 50;
 
         billsToExport.forEach((bill, billIndex) => {
             if (billIndex > 0) {
                 doc.addPage();
             }
 
-            // Header background
-            doc.setFillColor(...PDF_COLORS.PRIMARY_BLUE);
-            doc.rect(0, 0, pageWidth, 100, 'F');
+            // Elegant top border
+            doc.setDrawColor(...PDF_COLORS.PRIMARY_DARK);
+            doc.setLineWidth(3);
+            doc.line(margin, 40, pageWidth - margin, 40);
             
-            // Company name
-            doc.setFontSize(24);
-            doc.setTextColor(...PDF_COLORS.WHITE);
+            // Company name - elegant and refined
+            doc.setFontSize(22);
+            doc.setTextColor(...PDF_COLORS.PRIMARY_DARK);
             doc.setFont(undefined, 'bold');
-            doc.text('BALAJI SAI AUTO MOBILES', 40, 45);
-            
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'normal');
-            doc.text('Auto Nagar, Eluru Road, JANGAREDDYGUDEM', 40, 70);
-
-            // Invoice title
-            doc.setFontSize(20);
-            doc.setTextColor(...PDF_COLORS.PRIMARY_BLUE);
-            doc.setFont(undefined, 'bold');
-            doc.text('INVOICE', pageWidth - 150, 45);
-
-            // Invoice details box (right side)
-            doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
-            doc.setLineWidth(1);
-            doc.rect(pageWidth - 230, 120, 190, 80);
-            
-            doc.setFontSize(10);
-            doc.setTextColor(...PDF_COLORS.GRAY_MEDIUM);
-            doc.setFont(undefined, 'bold');
-            doc.text('Invoice No:', pageWidth - 220, 140);
-            doc.text('Date:', pageWidth - 220, 165);
-            
-            doc.setTextColor(...PDF_COLORS.TEXT_DARK);
-            doc.setFont(undefined, 'normal');
-            doc.text(bill.invoiceNo, pageWidth - 220, 152);
-            doc.text(formatDate(bill.date), pageWidth - 220, 177);
-
-            // Customer details box (left side)
-            doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
-            doc.rect(40, 120, 300, 120);
-            
-            doc.setFontSize(12);
-            doc.setTextColor(...PDF_COLORS.PRIMARY_BLUE);
-            doc.setFont(undefined, 'bold');
-            doc.text('BILL TO', 50, 140);
-            
-            doc.setFontSize(10);
-            doc.setTextColor(...PDF_COLORS.TEXT_DARK);
-            doc.setFont(undefined, 'bold');
-            doc.text(bill.customer.name, 50, 160);
-            
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(...PDF_COLORS.GRAY_DARK);
-            const addressLines = doc.splitTextToSize(bill.customer.address || 'N/A', 280);
-            doc.text(addressLines, 50, 175);
-            
-            const phoneY = 175 + (addressLines.length * 12);
-            doc.text(`Phone: ${bill.customer.phone || 'N/A'}`, 50, phoneY);
-
-            // Additional details box
-            let detailsY = Math.max(240, phoneY + 30);
-            doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
-            doc.rect(40, detailsY, pageWidth - 80, 50);
+            doc.text('BALAJI SAI AUTO MOBILES', margin, 65);
             
             doc.setFontSize(9);
-            doc.setTextColor(...PDF_COLORS.GRAY_MEDIUM);
-            doc.setFont(undefined, 'bold');
-            doc.text('Transport:', 50, detailsY + 20);
-            doc.text('Payment Mode:', 220, detailsY + 20);
-            doc.text('Status:', 400, detailsY + 20);
-            
-            doc.setTextColor(...PDF_COLORS.TEXT_DARK);
+            doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
             doc.setFont(undefined, 'normal');
-            doc.text(bill.transport || 'N/A', 50, detailsY + 35);
-            doc.text(bill.paymentMode || 'N/A', 220, detailsY + 35);
+            doc.text('Auto Nagar, Eluru Road, JANGAREDDYGUDEM', margin, 82);
+
+            // Invoice title - right aligned, elegant
+            doc.setFontSize(28);
+            doc.setTextColor(...PDF_COLORS.TEXT_MUTED);
+            doc.setFont(undefined, 'bold');
+            doc.text('INVOICE', pageWidth - margin, 65, { align: 'right' });
+
+            // Thin separator line
+            doc.setDrawColor(...PDF_COLORS.BORDER_LIGHT);
+            doc.setLineWidth(0.5);
+            doc.line(margin, 95, pageWidth - margin, 95);
+
+            // Invoice details - clean layout
+            let currentY = 120;
+            doc.setFontSize(9);
+            doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
+            doc.setFont(undefined, 'bold');
+            doc.text('INVOICE NUMBER', pageWidth - margin - 150, currentY, { align: 'right' });
+            doc.text('DATE', pageWidth - margin - 150, currentY + 20, { align: 'right' });
             
-            // Status with color
+            doc.setTextColor(...PDF_COLORS.TEXT_PRIMARY);
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            doc.text(bill.invoiceNo, pageWidth - margin, currentY, { align: 'right' });
+            doc.text(formatDate(bill.date), pageWidth - margin, currentY + 20, { align: 'right' });
+
+            // Bill To section - refined
+            currentY = 120;
+            doc.setFontSize(9);
+            doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
+            doc.setFont(undefined, 'bold');
+            doc.text('BILL TO', margin, currentY);
+            
+            currentY += 18;
+            doc.setFontSize(11);
+            doc.setTextColor(...PDF_COLORS.TEXT_PRIMARY);
+            doc.setFont(undefined, 'bold');
+            doc.text(bill.customer.name, margin, currentY);
+            
+            currentY += 15;
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
+            const addressLines = doc.splitTextToSize(bill.customer.address || 'N/A', 250);
+            doc.text(addressLines, margin, currentY);
+            
+            currentY += (addressLines.length * 12) + 10;
+            doc.text(`Phone: ${bill.customer.phone || 'N/A'}`, margin, currentY);
+
+            // Additional details - single row, clean
+            currentY += 35;
+            doc.setDrawColor(...PDF_COLORS.BORDER_LIGHT);
+            doc.setLineWidth(0.5);
+            doc.line(margin, currentY, pageWidth - margin, currentY);
+            
+            currentY += 18;
+            doc.setFontSize(8);
+            doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
+            doc.setFont(undefined, 'bold');
+            doc.text('TRANSPORT', margin, currentY);
+            doc.text('PAYMENT METHOD', margin + 180, currentY);
+            doc.text('STATUS', margin + 360, currentY);
+            
+            currentY += 12;
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(...PDF_COLORS.TEXT_PRIMARY);
+            doc.text(bill.transport || 'N/A', margin, currentY);
+            doc.text(bill.paymentMode || 'N/A', margin + 180, currentY);
+            
+            // Status with subtle color
             const status = bill.status || 'N/A';
             if (status.toLowerCase() === 'paid') {
-                doc.setTextColor(...PDF_COLORS.GREEN);
+                doc.setTextColor(...PDF_COLORS.STATUS_PAID);
             } else if (status.toLowerCase() === 'pending') {
-                doc.setTextColor(...PDF_COLORS.YELLOW);
+                doc.setTextColor(...PDF_COLORS.STATUS_PENDING);
             } else {
-                doc.setTextColor(...PDF_COLORS.RED);
+                doc.setTextColor(...PDF_COLORS.STATUS_OTHER);
             }
             doc.setFont(undefined, 'bold');
-            doc.text(status, 400, detailsY + 35);
+            doc.text(status, margin + 360, currentY);
 
-            // Items table
-            const tableStartY = detailsY + 70;
-            const cols = ['S.No', 'Particulars', 'Qty', 'Unit Rate', 'Amount'];
+            currentY += 18;
+            doc.setDrawColor(...PDF_COLORS.BORDER_LIGHT);
+            doc.setLineWidth(0.5);
+            doc.line(margin, currentY, pageWidth - margin, currentY);
+
+            // Items table - elegant and clean
+            const tableStartY = currentY + 15;
+            const cols = ['#', 'Description', 'Qty', 'Unit Price', 'Amount'];
             const rows = bill.items.map((it, idx) => [
-                idx + 1, 
+                String(idx + 1), 
                 it.name, 
                 String(it.qty), 
                 `₹${it.rate.toFixed(2)}`, 
@@ -746,57 +787,65 @@ function downloadBillsPDF(billsToExport, filename) {
                 startY: tableStartY, 
                 head: [cols], 
                 body: rows,
-                theme: 'striped',
+                theme: 'plain',
                 headStyles: {
-                    fillColor: PDF_COLORS.PRIMARY_BLUE,
-                    textColor: PDF_COLORS.WHITE[0],
-                    fontSize: 10,
+                    fillColor: PDF_COLORS.BG_SUBTLE,
+                    textColor: PDF_COLORS.TEXT_SECONDARY,
+                    fontSize: 9,
                     fontStyle: 'bold',
-                    halign: 'center'
+                    halign: 'left',
+                    cellPadding: 8
                 },
                 bodyStyles: {
                     fontSize: 9,
-                    textColor: PDF_COLORS.GRAY_DARK
-                },
-                alternateRowStyles: {
-                    fillColor: PDF_COLORS.BG_LIGHT
+                    textColor: PDF_COLORS.TEXT_PRIMARY,
+                    cellPadding: 8
                 },
                 columnStyles: {
-                    0: { halign: 'center', cellWidth: 50 },
+                    0: { halign: 'center', cellWidth: 30 },
                     1: { cellWidth: 'auto' },
-                    2: { halign: 'center', cellWidth: 60 },
-                    3: { halign: 'right', cellWidth: 90 },
-                    4: { halign: 'right', cellWidth: 100 }
+                    2: { halign: 'center', cellWidth: 50 },
+                    3: { halign: 'right', cellWidth: 80 },
+                    4: { halign: 'right', cellWidth: 90 }
                 },
-                margin: { left: 40, right: 40 }
+                margin: { left: margin, right: margin },
+                didDrawPage: function(data) {
+                    // Add subtle borders
+                    doc.setDrawColor(...PDF_COLORS.BORDER_LIGHT);
+                    doc.setLineWidth(0.5);
+                }
             });
 
-            // Total section
-            const finalY = doc.lastAutoTable.finalY || 300;
-            const totalBoxY = finalY + 20;
+            // Total section - refined and elegant
+            const finalY = doc.lastAutoTable.finalY || 400;
             
-            // Total box
-            doc.setFillColor(...PDF_COLORS.PRIMARY_BLUE);
-            doc.rect(pageWidth - 240, totalBoxY, 200, 40, 'F');
+            // Subtle separator
+            doc.setDrawColor(...PDF_COLORS.BORDER_MEDIUM);
+            doc.setLineWidth(1);
+            doc.line(pageWidth - margin - 200, finalY + 15, pageWidth - margin, finalY + 15);
             
-            doc.setFontSize(14);
-            doc.setTextColor(...PDF_COLORS.WHITE);
+            // Total amount - elegant presentation
+            doc.setFontSize(10);
+            doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
             doc.setFont(undefined, 'bold');
-            doc.text('TOTAL AMOUNT', pageWidth - 230, totalBoxY + 18);
+            doc.text('TOTAL AMOUNT', pageWidth - margin - 200, finalY + 35, { align: 'left' });
+            
             doc.setFontSize(16);
-            doc.text(`₹${bill.total.toFixed(2)}`, pageWidth - 230, totalBoxY + 35);
+            doc.setTextColor(...PDF_COLORS.PRIMARY_DARK);
+            doc.setFont(undefined, 'bold');
+            doc.text(`₹${bill.total.toFixed(2)}`, pageWidth - margin, finalY + 37, { align: 'right' });
 
-            // Footer
-            const footerY = pageHeight - 50;
-            doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
+            // Footer - minimalist and professional
+            const footerY = pageHeight - 60;
+            doc.setDrawColor(...PDF_COLORS.BORDER_LIGHT);
             doc.setLineWidth(0.5);
-            doc.line(40, footerY, pageWidth - 40, footerY);
+            doc.line(margin, footerY, pageWidth - margin, footerY);
             
             doc.setFontSize(8);
-            doc.setTextColor(...PDF_COLORS.TEXT_LIGHT);
+            doc.setTextColor(...PDF_COLORS.TEXT_MUTED);
             doc.setFont(undefined, 'normal');
-            doc.text('Thank you for your business!', pageWidth / 2, footerY + 15, { align: 'center' });
-            doc.text('For any queries, please contact us at the above address', pageWidth / 2, footerY + 27, { align: 'center' });
+            doc.text('Thank you for your business', pageWidth / 2, footerY + 15, { align: 'center' });
+            doc.text('For inquiries, please contact us at the address above', pageWidth / 2, footerY + 27, { align: 'center' });
         });
 
         doc.save(filename + '.pdf');
