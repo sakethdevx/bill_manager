@@ -1,5 +1,28 @@
 // Bill Manager Application
 
+// Modern Professional PDF Design Constants
+const PDF_COLORS = {
+    PRIMARY: [30, 58, 138],           // Professional navy blue
+    PRIMARY_LIGHT: [59, 130, 246],    // Lighter blue for accents
+    TEXT_DARK: [17, 24, 39],          // Rich black
+    TEXT_GRAY: [107, 114, 128],       // Medium gray
+    TEXT_LIGHT: [156, 163, 175],      // Light gray
+    BORDER: [229, 231, 235],          // Subtle border
+    BG_GRAY: [249, 250, 251],         // Very light background
+    SUCCESS: [16, 185, 129],          // Green for paid
+    WARNING: [245, 158, 11],          // Orange for pending
+    DANGER: [239, 68, 68],            // Red for unpaid
+    WHITE: [255, 255, 255]
+};
+
+// Company Information for PDF
+const COMPANY_INFO = {
+    NAME: 'BALAJI SAI AUTO MOBILES',
+    ADDRESS: 'Auto Nagar, Eluru Road, JANGAREDDYGUDEM',
+    GSTIN: '37BGLPV7608B1Z3',
+    PHONE: '9490350878'
+};
+
 // Data Storage
 let bills = [];
 let inventory = [];
@@ -434,34 +457,229 @@ function viewBill(billId) {
     document.getElementById('billViewModal').classList.add('active');
 }
 
+// Helper function to render a single bill in PDF
+function renderBillToPDF(doc, bill, pageWidth, pageHeight) {
+    const margin = 40;
+    
+    // Modern header with company info
+    doc.setFillColor(...PDF_COLORS.PRIMARY);
+    doc.rect(0, 0, pageWidth, 100, 'F');
+    
+    // Company name in header
+    doc.setFontSize(24);
+    doc.setTextColor(...PDF_COLORS.WHITE);
+    doc.setFont(undefined, 'bold');
+    doc.text(COMPANY_INFO.NAME, margin, 45);
+    
+    // Company contact info in header
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+    doc.text(COMPANY_INFO.ADDRESS, margin, 65);
+    doc.text(`GSTIN: ${COMPANY_INFO.GSTIN}`, margin, 80);
+    doc.text(`Phone: ${COMPANY_INFO.PHONE}`, margin, 92);
+
+    // INVOICE label - top right
+    doc.setFontSize(32);
+    doc.setFont(undefined, 'bold');
+    doc.text('INVOICE', pageWidth - margin, 55, { align: 'right' });
+
+    // Invoice details section - top right under INVOICE
+    let yPos = 120;
+    doc.setFontSize(10);
+    doc.setTextColor(...PDF_COLORS.TEXT_GRAY);
+    doc.setFont(undefined, 'normal');
+    doc.text('Invoice Number:', pageWidth - 200, yPos);
+    doc.text('Date:', pageWidth - 200, yPos + 18);
+    
+    doc.setTextColor(...PDF_COLORS.TEXT_DARK);
+    doc.setFont(undefined, 'bold');
+    doc.text(bill.invoiceNo, pageWidth - margin, yPos, { align: 'right' });
+    doc.text(formatDate(bill.date), pageWidth - margin, yPos + 18, { align: 'right' });
+
+    // Bill To section - modern box
+    yPos = 120;
+    doc.setFillColor(...PDF_COLORS.BG_GRAY);
+    doc.rect(margin, yPos, 280, 100, 'F');
+    
+    doc.setFontSize(10);
+    doc.setTextColor(...PDF_COLORS.TEXT_GRAY);
+    doc.setFont(undefined, 'bold');
+    doc.text('BILL TO', margin + 15, yPos + 20);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(...PDF_COLORS.TEXT_DARK);
+    doc.text(bill.customer.name, margin + 15, yPos + 40);
+    
+    doc.setFontSize(9);
+    doc.setTextColor(...PDF_COLORS.TEXT_GRAY);
+    doc.setFont(undefined, 'normal');
+    const addressLines = doc.splitTextToSize(bill.customer.address || 'N/A', 250);
+    doc.text(addressLines, margin + 15, yPos + 55);
+    
+    const phoneY = yPos + 55 + (addressLines.length * 11);
+    doc.text(`Phone: ${bill.customer.phone || 'N/A'}`, margin + 15, phoneY);
+
+    // Payment & Shipping details - modern grid
+    yPos = 240;
+    doc.setDrawColor(...PDF_COLORS.BORDER);
+    doc.setLineWidth(1);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    
+    yPos += 20;
+    doc.setFontSize(9);
+    doc.setTextColor(...PDF_COLORS.TEXT_GRAY);
+    doc.setFont(undefined, 'bold');
+    
+    const col1 = margin;
+    const col2 = margin + 180;
+    const col3 = margin + 360;
+    
+    doc.text('TRANSPORT', col1, yPos);
+    doc.text('PAYMENT METHOD', col2, yPos);
+    doc.text('STATUS', col3, yPos);
+    
+    yPos += 15;
+    doc.setFontSize(10);
+    doc.setTextColor(...PDF_COLORS.TEXT_DARK);
+    doc.setFont(undefined, 'normal');
+    doc.text(bill.transport || 'N/A', col1, yPos);
+    doc.text(bill.paymentMode || 'N/A', col2, yPos);
+    
+    // Status with color badge
+    const status = bill.status || 'N/A';
+    const statusLower = status.toLowerCase();
+    let statusColor = PDF_COLORS.TEXT_GRAY;
+    if (statusLower === 'paid') statusColor = PDF_COLORS.SUCCESS;
+    else if (statusLower === 'pending') statusColor = PDF_COLORS.WARNING;
+    else if (statusLower.includes('unpaid')) statusColor = PDF_COLORS.DANGER;
+    
+    doc.setTextColor(...statusColor);
+    doc.setFont(undefined, 'bold');
+    doc.text(status.toUpperCase(), col3, yPos);
+    
+    yPos += 20;
+    doc.setDrawColor(...PDF_COLORS.BORDER);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+
+    // Items table - modern design
+    yPos += 20;
+    const cols = ['#', 'Item', 'Quantity', 'Unit Price', 'Amount'];
+    const rows = bill.items.map((it, idx) => [
+        idx + 1,
+        it.name,
+        String(it.qty),
+        `Rs. ${it.rate.toFixed(2)}`,
+        `Rs. ${it.amount.toFixed(2)}`
+    ]);
+
+    doc.autoTable({
+        startY: yPos,
+        head: [cols],
+        body: rows,
+        theme: 'plain',
+        headStyles: {
+            fillColor: PDF_COLORS.BG_GRAY,
+            textColor: PDF_COLORS.TEXT_DARK,
+            fontSize: 10,
+            fontStyle: 'bold',
+            halign: 'left',
+            cellPadding: 10
+        },
+        bodyStyles: {
+            fontSize: 10,
+            textColor: PDF_COLORS.TEXT_DARK,
+            cellPadding: 10
+        },
+        columnStyles: {
+            0: { halign: 'center', cellWidth: 40 },
+            1: { cellWidth: 'auto' },
+            2: { halign: 'center', cellWidth: 80 },
+            3: { halign: 'right', cellWidth: 100 },
+            4: { halign: 'right', cellWidth: 100 }
+        },
+        margin: { left: margin, right: margin },
+        didDrawPage: function(data) {
+            // Add borders to table
+            doc.setDrawColor(...PDF_COLORS.BORDER);
+            doc.setLineWidth(0.5);
+        }
+    });
+
+    // Total section - modern card style
+    const finalY = doc.lastAutoTable.finalY + 20;
+    
+    // Total box with background
+    const totalBoxHeight = 60;
+    const totalBoxWidth = 220;
+    doc.setFillColor(...PDF_COLORS.PRIMARY);
+    doc.roundedRect(pageWidth - margin - totalBoxWidth, finalY, totalBoxWidth, totalBoxHeight, 3, 3, 'F');
+    
+    doc.setFontSize(11);
+    doc.setTextColor(...PDF_COLORS.WHITE);
+    doc.setFont(undefined, 'bold');
+    doc.text('TOTAL AMOUNT', pageWidth - margin - totalBoxWidth + 20, finalY + 25);
+    
+    doc.setFontSize(20);
+    doc.text(`Rs. ${bill.total.toFixed(2)}`, pageWidth - margin - totalBoxWidth + 20, finalY + 48);
+
+    // Footer - professional
+    const footerY = pageHeight - 60;
+    doc.setDrawColor(...PDF_COLORS.BORDER);
+    doc.setLineWidth(0.5);
+    doc.line(margin, footerY, pageWidth - margin, footerY);
+    
+    doc.setFontSize(9);
+    doc.setTextColor(...PDF_COLORS.TEXT_LIGHT);
+    doc.setFont(undefined, 'normal');
+    doc.text('Thank you for your business', pageWidth / 2, footerY + 20, { align: 'center' });
+    doc.text('For any queries or concerns, please contact us at the address mentioned above', pageWidth / 2, footerY + 35, { align: 'center' });
+}
+
 // Download PDF of current bill using jsPDF
 function downloadBillPDF() {
     if (!currentBill) { alert('No bill selected'); return; }
+    if (!window.jspdf) {
+        alert('jsPDF library not loaded. Please refresh the page and try again.');
+        return;
+    }
     try {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
 
-        doc.setFontSize(18);
-        doc.setTextColor('#2563eb');
-        doc.text('BALAJI SAI AUTO MOBILES', 40, 50);
-
-        doc.setFontSize(12);
-        doc.setTextColor('#000');
-        doc.text(`Invoice: ${currentBill.invoiceNo}`, 40, 80);
-        doc.text(`Date: ${formatDate(currentBill.date)}`, 40, 96);
-        doc.text(`Customer: ${currentBill.customer.name}`, 40, 112);
-        doc.text(`Phone: ${currentBill.customer.phone || 'N/A'}`, 40, 128);
-
-        const cols = ['S.No', 'Particulars', 'Qty', 'Unit Rate', 'Amount'];
-        const rows = currentBill.items.map((it, idx) => [idx + 1, it.name, String(it.qty), `₹${it.rate.toFixed(2)}`, `₹${it.amount.toFixed(2)}`]);
-
-        doc.autoTable({ startY: 150, head: [cols], body: rows, styles: { fontSize: 10 } });
-
-        const finalY = doc.lastAutoTable.finalY || 300;
-        doc.setFontSize(14);
-        doc.text(`Total: ₹${currentBill.total.toFixed(2)}`, 40, finalY + 30);
-
+        renderBillToPDF(doc, currentBill, pageWidth, pageHeight);
         doc.save(`Invoice_${currentBill.invoiceNo}.pdf`);
+    } catch (err) {
+        console.error('PDF export error', err);
+        alert('Unable to generate PDF. Check console for details.');
+    }
+}
+
+// Download multiple bills as PDF (one bill per page)
+function downloadBillsPDF(billsToExport, filename) {
+    if (!billsToExport || billsToExport.length === 0) {
+        alert('No bills to export');
+        return;
+    }
+    if (!window.jspdf) {
+        alert('jsPDF library not loaded. Please refresh the page and try again.');
+        return;
+    }
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+
+        billsToExport.forEach((bill, billIndex) => {
+            if (billIndex > 0) {
+                doc.addPage();
+            }
+            renderBillToPDF(doc, bill, pageWidth, pageHeight);
+        });
+
+        doc.save(filename + '.pdf');
     } catch (err) {
         console.error('PDF export error', err);
         alert('Unable to generate PDF. Check console for details.');
@@ -828,6 +1046,18 @@ function initExportSection() {
         const ds = datasetSelect.value;
         const format = formatSelect.value;
         const data = getFilteredData(ds);
+        
+        // PDF export only works for bills
+        if (format === 'pdf') {
+            if (ds !== 'bills') {
+                alert('PDF export is only available for Bills');
+                return;
+            }
+            const filename = `bills_export_${new Date().toISOString().slice(0, 10)}`;
+            downloadBillsPDF(data, filename);
+            return;
+        }
+        
         const selected = getSelectedColumns();
         const rows = prepareRows(data, selected);
         const filename = `${ds}_export_${new Date().toISOString().slice(0, 10)}`;
