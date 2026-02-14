@@ -1367,17 +1367,41 @@ input[style] {
 }
 
 @media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
     .nav-bar {
+        padding: 15px;
         flex-direction: column;
         align-items: stretch;
+        gap: 15px;
+    }
+
+    .nav-bar h1 {
+        font-size: 1.4rem;
     }
 
     .nav-buttons {
         justify-content: stretch;
+        gap: 8px;
     }
 
     .nav-btn {
         flex: 1;
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    .nav-left,
+    .nav-right {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .user-info {
+        font-size: 0.85rem;
     }
 
     .item-row {
@@ -1391,15 +1415,206 @@ input[style] {
     .section-header {
         flex-direction: column;
         align-items: stretch;
+        gap: 10px;
+    }
+
+    .section-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .header-controls {
+        width: 100%;
+    }
+
+    .header-controls .btn {
+        width: 100%;
+    }
+
+    .header-controls .search-input {
+        width: 100%;
+    }
+
+    /* Make tables horizontally scrollable on mobile */
+    #billsTableContainer,
+    #inventoryTableContainer,
+    #stockHistoryContainer {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .data-table {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        min-width: 600px;
     }
 
     .data-table th,
     .data-table td {
-        padding: 10px;
+        padding: 8px 6px;
+        font-size: 0.85rem;
+    }
+
+    /* Modal improvements for mobile */
+    .modal-content {
+        margin: 20px;
+        max-width: calc(100% - 40px);
+        max-height: calc(100vh - 40px);
+        overflow-y: auto;
+    }
+
+    .modal-header,
+    .modal-actions {
+        padding: 15px;
+    }
+
+    .bill-view {
+        padding: 15px;
+    }
+
+    .bill-info {
+        grid-template-columns: 1fr;
+    }
+
+    /* Form improvements for mobile */
+    .form-container {
+        padding: 15px;
+    }
+
+    .form-header {
+        padding-bottom: 10px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+
+    /* Stock management mobile layout */
+    .stock-manager {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .stock-history {
+        padding: 15px;
+    }
+
+    .stock-history h3 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+
+    /* Make stock history table scrollable on mobile */
+    #stockHistoryContainer {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #stockHistoryContainer .data-table {
+        min-width: 600px;
+    }
+
+    /* Table footer for mobile */
+    .table-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .pagination-controls {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .pagination-info {
+        text-align: center;
+    }
+
+    /* Export panel mobile improvements */
+    .export-panel {
+        padding: 15px;
+    }
+
+    .export-panel .form-row {
+        gap: 12px;
+    }
+
+    /* Remove flex sizing on mobile for better stacking */
+    .export-panel .form-row .form-group {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+
+    .export-panel .form-group label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .columns-list {
+        grid-template-columns: 1fr;
+        max-height: 250px;
+    }
+
+    .export-filters {
+        gap: 12px;
+    }
+
+    .export-filters .form-group {
+        margin-bottom: 12px;
+    }
+
+    .export-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .export-actions .btn {
+        width: 100%;
+    }
+}
+
+/* Extra small devices (phones in portrait mode) */
+@media (max-width: 480px) {
+    .nav-bar h1 {
+        font-size: 1.2rem;
+    }
+
+    .nav-btn {
+        font-size: 0.85rem;
+        padding: 8px 10px;
+    }
+
+    .section-header h2 {
+        font-size: 1.3rem;
+    }
+
+    .data-table {
+        font-size: 0.8rem;
+        min-width: 500px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 6px 4px;
+        font-size: 0.8rem;
+    }
+
+    .btn {
+        font-size: 0.9rem;
+        padding: 8px 16px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 0.9rem;
+    }
+
+    .modal-content {
+        margin: 10px;
+        max-width: calc(100% - 20px);
     }
 }
 
