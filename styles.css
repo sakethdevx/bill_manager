@@ -48,7 +48,8 @@ body {
     box-shadow: var(--shadow-lg);
     width: 100%;
     max-width: 420px;
-    animation: fadeInUp 0.5s ease-out;
+    /* Use opacity-only fade to avoid vertical shift on load */
+    animation: fadeInOpacity 0.35s ease-out;
 }
 
 /* Use flex centering from the container to avoid layout jumps */
@@ -801,6 +802,16 @@ body {
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes fadeInOpacity {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
     }
 }
 
