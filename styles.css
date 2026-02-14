@@ -230,6 +230,100 @@ body {
     }
 }
 
+/* Language selector positioning in auth header - mobile first */
+.auth-language-selector {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+    margin-bottom: 8px;
+}
+
+.auth-language-selector .language-select {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+/* Desktop: position language selector absolutely at top-right */
+@media (min-width: 481px) {
+    .auth-language-selector {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        margin: 0;
+    }
+}
+
+/* Additional mobile-specific optimizations for login page
+   Note: Base language selector styles above are mobile-first.
+   This block contains additional mobile-only adjustments. */
+@media (max-width: 480px) {
+    /* Container and card adjustments */
+    .auth-container {
+        padding: 16px;
+        overflow: hidden;
+        align-items: flex-start;
+    }
+
+    .auth-card {
+        border-radius: 12px;
+        /* Max height accounts for container padding (16px top + 16px bottom = 32px) */
+        max-height: calc(100vh - 32px);
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Hide branding section on small mobile screens to ensure form fits */
+    .auth-left {
+        display: none;
+    }
+
+    .auth-right {
+        padding: 20px;
+        position: relative;
+    }
+
+    /* Header and branding typography */
+    .auth-header {
+        margin-bottom: 24px;
+    }
+
+    .auth-header h2 {
+        font-size: 1.4rem;
+        margin-bottom: 8px;
+    }
+
+    .logo-mark {
+        width: 48px;
+        height: 48px;
+        font-size: 1rem;
+    }
+
+    .brand-text h1 {
+        font-size: 1rem;
+    }
+
+    .brand-text p {
+        font-size: 0.8rem;
+    }
+
+    .brand-lead {
+        font-size: 0.85rem;
+    }
+
+    /* Form elements */
+    .auth-body .form-group input {
+        padding: 10px 12px;
+        font-size: 0.95rem;
+    }
+
+    .btn-block {
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+}
+
 .auth-header {
     text-align: center;
     margin-bottom: 30px;
