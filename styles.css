@@ -363,6 +363,124 @@ body {
     color: var(--text-primary);
 }
 
+/* List header (controls + title) */
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+/* Data table improvements */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(20, 30, 60, 0.04);
+}
+
+.data-table thead th {
+    background: linear-gradient(180deg, #fbfdff, #f4f7fb);
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.data-table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: var(--text-primary);
+}
+
+.data-table tbody tr:nth-child(even) {
+    background: #fbfcfe;
+}
+
+.data-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.table-actions button {
+    margin-right: 6px;
+}
+
+.table-actions .btn-view {
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+.table-actions .btn-delete {
+    background: var(--danger-color);
+    color: #fff;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+/* Form container refinement */
+.form-container {
+    padding: 28px;
+    border-radius: 12px;
+}
+
+/* Modal base styles */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    background: rgba(8, 12, 24, 0.45);
+    z-index: 9999;
+}
+
+.modal.active,
+.modal[style*="display:flex"] {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 12px;
+    max-width: 900px;
+    width: 100%;
+    box-shadow: 0 12px 40px rgba(16, 24, 40, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+
+/* Responsive tweaks */
+@media (max-width: 880px) {
+
+    .data-table thead th,
+    .data-table tbody td {
+        padding: 10px 8px;
+    }
+}
+
 /* Buttons */
 .btn {
     padding: 10px 20px;
