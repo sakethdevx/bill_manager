@@ -56,18 +56,20 @@
     function setLanguage(lang) {
         localStorage.setItem('lang', lang);
         applyTranslations(lang);
-        const sel = document.getElementById('language-select');
-        if (sel) sel.value = lang;
+        // update all language selectors on the page
+        document.querySelectorAll('.language-select').forEach(s => { s.value = lang; });
     }
 
     function initI18n() {
         const stored = localStorage.getItem('lang');
         const browser = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
         const preferred = stored || (browser.startsWith('te') ? 'te' : 'en');
-        const sel = document.getElementById('language-select');
-        if (sel) sel.value = preferred;
+        // initialize any language selectors and wire change events
+        document.querySelectorAll('.language-select').forEach(sel => {
+            sel.value = preferred;
+            sel.addEventListener('change', (e) => setLanguage(e.target.value));
+        });
         applyTranslations(preferred);
-        if (sel) sel.addEventListener('change', (e) => setLanguage(e.target.value));
     }
 
     document.addEventListener('DOMContentLoaded', initI18n);

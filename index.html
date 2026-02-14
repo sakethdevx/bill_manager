@@ -35,7 +35,7 @@
                     <h2 data-i18n="welcome_back">Welcome back</h2>
                     <p class="muted" data-i18n="sign_in_muted">Sign in to continue to your dashboard</p>
                     <div style="position:absolute;right:16px;top:16px">
-                        <select id="language-select" aria-label="Language selector"
+                        <select class="language-select" aria-label="Language selector"
                             style="padding:6px 8px;border-radius:6px;border:1px solid var(--border-color)">
                             <option value="en">EN</option>
                             <option value="te">తెలుగు</option>
@@ -113,6 +113,11 @@
             </div>
             <div class="nav-right">
                 <span class="user-info">👤 <span id="user-email"></span></span>
+                <select class="language-select" aria-label="Language selector"
+                    style="margin-right:8px;padding:6px 8px;border-radius:6px;border:1px solid var(--border-color)">
+                    <option value="en">EN</option>
+                    <option value="te">తెలుగు</option>
+                </select>
                 <button class="btn btn-secondary btn-sm" onclick="signOut()">Logout</button>
             </div>
         </nav>
