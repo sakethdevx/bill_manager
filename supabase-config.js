@@ -51,6 +51,38 @@
         window.signOut = window.supabaseSignOut;
         window.signIn = function (email, password) { return window.supabaseSignIn(email, password); };
 
+        // Password reset helper: prompts for email when not supplied
+        window.sendPasswordReset = async function (email) {
+            try {
+                if (!email) {
+                    email = prompt('Enter your account email to receive a password reset link:');
+                }
+                if (!email) return;
+
+                const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: location.origin });
+                if (error) {
+                    alert('Unable to send reset email: ' + error.message);
+                } else {
+                    alert('If an account exists for that email, a password reset email has been sent.');
+                }
+            } catch (err) {
+                console.error('Password reset error:', err);
+                alert('Password reset failed. See console for details.');
+            }
+        };
+
+        // Attach click handler(s) for any "Forgot password?" links on the page
+        try {
+            document.querySelectorAll('.forgot').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    window.sendPasswordReset();
+                });
+            });
+        } catch (attachErr) {
+            // safe to ignore during early init
+        }
+
         // Initial UI update
         updateUI();
     } catch (err) {
