@@ -275,7 +275,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Dataset</label>
-                        <select id="exportDataset">
+                        <select id="exportDataset" class="control-input">
                             <option value="bills">Bills</option>
                             <option value="inventory">Inventory</option>
                             <option value="stockHistory">Stock History</option>
@@ -284,7 +284,7 @@
 
                     <div class="form-group">
                         <label>Format</label>
-                        <select id="exportFormat">
+                        <select id="exportFormat" class="control-input">
                             <option value="csv">CSV</option>
                             <option value="json">JSON</option>
                             <option value="xlsx">Excel (.xlsx)</option>
@@ -302,18 +302,18 @@
 
                     <div class="form-group flex-1">
                         <label>Filters</label>
-                        <div id="exportFilters">
+                        <div id="exportFilters" class="export-filters">
                             <!-- dynamic filters -->
                         </div>
                     </div>
                 </div>
 
-                <div class="form-actions mt-12">
-                    <button class="btn btn-primary" id="previewBtn">Preview</button>
-                    <button class="btn btn-success" id="doExportBtn">Export</button>
+                <div class="export-actions">
+                    <button class="btn btn-secondary" id="previewBtn">Preview</button>
+                    <button class="btn btn-primary" id="doExportBtn">Export</button>
                 </div>
 
-                <div id="exportPreview" class="mt-12"></div>
+                <div id="exportPreview" class="export-preview"></div>
             </div>
         </section>
 

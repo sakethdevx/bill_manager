@@ -945,6 +945,79 @@ input[style] {
     box-shadow: var(--shadow);
 }
 
+/* Export panel styling */
+.export-panel {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.export-panel .form-row {
+    gap: 18px;
+}
+
+.export-panel select,
+.export-panel .control-input,
+.export-panel input,
+.export-panel textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--white);
+}
+
+.columns-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 8px 12px;
+    padding: 8px 6px;
+    border: 1px dashed var(--border-color);
+    border-radius: 8px;
+    max-height: 320px;
+    overflow: auto;
+    background: #fbfdff;
+}
+
+.columns-list label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+}
+
+.export-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.export-preview {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    max-height: 300px;
+    overflow: auto;
+}
+
+.export-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+@media (max-width: 880px) {
+    .columns-list {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+}
+
 .pagination-info {
     color: var(--text-secondary);
     font-size: 0.95rem;
