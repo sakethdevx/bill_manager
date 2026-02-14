@@ -1561,10 +1561,14 @@ input[style] {
     .stock-manager {
         grid-template-columns: 1fr;
         gap: 20px;
+        min-width: 0;
+        overflow: hidden;
     }
 
     .stock-history {
         padding: 15px;
+        min-width: 0;
+        overflow-x: auto;
     }
 
     .stock-history h3 {
