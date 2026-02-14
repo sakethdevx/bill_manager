@@ -266,6 +266,7 @@ body {
 
     .auth-card {
         border-radius: 12px;
+        /* Max height accounts for container padding (16px top + 16px bottom = 32px) */
         max-height: calc(100vh - 32px);
         overflow-y: auto;
     }
