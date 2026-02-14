@@ -568,8 +568,8 @@ function renderBillToPDF(doc, bill, pageWidth, pageHeight) {
         idx + 1,
         it.name,
         String(it.qty),
-        `₹${it.rate.toFixed(2)}`,
-        `₹${it.amount.toFixed(2)}`
+        `Rs. ${it.rate.toFixed(2)}`,
+        `Rs. ${it.amount.toFixed(2)}`
     ]);
 
     doc.autoTable({
@@ -620,7 +620,7 @@ function renderBillToPDF(doc, bill, pageWidth, pageHeight) {
     doc.text('TOTAL AMOUNT', pageWidth - margin - totalBoxWidth + 20, finalY + 25);
     
     doc.setFontSize(20);
-    doc.text(`₹${bill.total.toFixed(2)}`, pageWidth - margin - totalBoxWidth + 20, finalY + 48);
+    doc.text(`Rs. ${bill.total.toFixed(2)}`, pageWidth - margin - totalBoxWidth + 20, finalY + 48);
 
     // Footer - professional
     const footerY = pageHeight - 60;
