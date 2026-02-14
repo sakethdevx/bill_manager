@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Bill Form</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container" style="display: block; padding: 20px;">
+        <!-- New Bill Form -->
+        <div id="new-bill-form" class="form-container" style="display: block;">
+            <div class="form-header">
+                <h3>Create New Bill</h3>
+                <button class="btn-close">×</button>
+            </div>
+
+            <form id="billForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Invoice No.</label>
+                        <input type="text" id="invoiceNo" value="001" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="invoiceDate" value="2024-02-14" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Customer Name</label>
+                        <input type="text" id="customerName" value="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="customerPhone" value="1234567890">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" id="customerAddress" value="123 Main St">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Transport</label>
+                        <input type="text" id="transport" value="Self">
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Mode</label>
+                        <select id="paymentMode">
+                            <option value="Cash">Cash</option>
+                            <option value="Card">Card</option>
+                            <option value="UPI" selected>UPI</option>
+                            <option value="Netbanking">Netbanking</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="paymentStatus">
+                            <option value="Paid" selected>Paid</option>
+                            <option value="Unpaid">Unpaid</option>
+                            <option value="Pending">Pending</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="items-section">
+                    <div class="section-header">
+                        <h4>Items</h4>
+                        <button type="button" class="btn btn-secondary">+ Add Item</button>
+                    </div>
+                    <div id="billItemsList" class="items-list">
+                        <!-- Sample Bill items -->
+                        <div class="item-row">
+                            <div class="item-field">
+                                <label>Item</label>
+                                <select class="item-select">
+                                    <option value="">-- Select or Type --</option>
+                                    <option value="1" selected>Brake Pads</option>
+                                </select>
+                                <input type="text" class="item-name" value="Brake Pads" placeholder="Item name" style="margin-top: 5px;">
+                            </div>
+                            <div class="item-field">
+                                <label>Quantity</label>
+                                <input type="number" class="item-qty" min="1" value="2">
+                            </div>
+                            <div class="item-field">
+                                <label>Rate (₹)</label>
+                                <input type="number" class="item-rate" step="0.01" min="0" value="500.00">
+                            </div>
+                            <div class="item-field">
+                                <label>Amount (₹)</label>
+                                <input type="number" class="item-amount" step="0.01" value="1000.00" readonly>
+                            </div>
+                            <button type="button" class="remove-item-btn">×</button>
+                        </div>
+                        <div class="item-row">
+                            <div class="item-field">
+                                <label>Item</label>
+                                <select class="item-select">
+                                    <option value="">-- Select or Type --</option>
+                                    <option value="2" selected>Engine Oil</option>
+                                </select>
+                                <input type="text" class="item-name" value="Engine Oil" placeholder="Item name" style="margin-top: 5px;">
+                            </div>
+                            <div class="item-field">
+                                <label>Quantity</label>
+                                <input type="number" class="item-qty" min="1" value="1">
+                            </div>
+                            <div class="item-field">
+                                <label>Rate (₹)</label>
+                                <input type="number" class="item-rate" step="0.01" min="0" value="800.00">
+                            </div>
+                            <div class="item-field">
+                                <label>Amount (₹)</label>
+                                <input type="number" class="item-amount" step="0.01" value="800.00" readonly>
+                            </div>
+                            <button type="button" class="remove-item-btn">×</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="total-section">
+                    <h3>Total Amount: ₹<span id="billTotal">1800.00</span></h3>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">Save Bill</button>
+                    <button type="button" class="btn btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
