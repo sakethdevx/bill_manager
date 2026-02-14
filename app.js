@@ -1,5 +1,20 @@
 // Bill Manager Application
 
+// PDF Design Constants
+const PDF_COLORS = {
+    PRIMARY_BLUE: [37, 99, 235],
+    WHITE: [255, 255, 255],
+    GRAY_LIGHT: [200, 200, 200],
+    GRAY_MEDIUM: [100, 100, 100],
+    GRAY_DARK: [60, 60, 60],
+    TEXT_DARK: [0, 0, 0],
+    TEXT_LIGHT: [120, 120, 120],
+    GREEN: [22, 163, 74],
+    YELLOW: [234, 179, 8],
+    RED: [239, 68, 68],
+    BG_LIGHT: [249, 250, 251]
+};
+
 // Data Storage
 let bills = [];
 let inventory = [];
@@ -448,12 +463,12 @@ function downloadBillPDF() {
         const pageHeight = doc.internal.pageSize.getHeight();
 
         // Header background
-        doc.setFillColor(37, 99, 235); // Blue
+        doc.setFillColor(...PDF_COLORS.PRIMARY_BLUE);
         doc.rect(0, 0, pageWidth, 100, 'F');
         
         // Company name
         doc.setFontSize(24);
-        doc.setTextColor(255, 255, 255);
+        doc.setTextColor(...PDF_COLORS.WHITE);
         doc.setFont(undefined, 'bold');
         doc.text('BALAJI SAI AUTO MOBILES', 40, 45);
         
@@ -463,42 +478,42 @@ function downloadBillPDF() {
 
         // Invoice title
         doc.setFontSize(20);
-        doc.setTextColor(37, 99, 235);
+        doc.setTextColor(...PDF_COLORS.PRIMARY_BLUE);
         doc.setFont(undefined, 'bold');
         doc.text('INVOICE', pageWidth - 150, 45);
 
         // Invoice details box (right side)
-        doc.setDrawColor(200, 200, 200);
+        doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
         doc.setLineWidth(1);
         doc.rect(pageWidth - 230, 120, 190, 80);
         
         doc.setFontSize(10);
-        doc.setTextColor(100, 100, 100);
+        doc.setTextColor(...PDF_COLORS.GRAY_MEDIUM);
         doc.setFont(undefined, 'bold');
         doc.text('Invoice No:', pageWidth - 220, 140);
         doc.text('Date:', pageWidth - 220, 165);
         
-        doc.setTextColor(0, 0, 0);
+        doc.setTextColor(...PDF_COLORS.TEXT_DARK);
         doc.setFont(undefined, 'normal');
         doc.text(currentBill.invoiceNo, pageWidth - 220, 152);
         doc.text(formatDate(currentBill.date), pageWidth - 220, 177);
 
         // Customer details box (left side)
-        doc.setDrawColor(200, 200, 200);
+        doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
         doc.rect(40, 120, 300, 120);
         
         doc.setFontSize(12);
-        doc.setTextColor(37, 99, 235);
+        doc.setTextColor(...PDF_COLORS.PRIMARY_BLUE);
         doc.setFont(undefined, 'bold');
         doc.text('BILL TO', 50, 140);
         
         doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
+        doc.setTextColor(...PDF_COLORS.TEXT_DARK);
         doc.setFont(undefined, 'bold');
         doc.text(currentBill.customer.name, 50, 160);
         
         doc.setFont(undefined, 'normal');
-        doc.setTextColor(60, 60, 60);
+        doc.setTextColor(...PDF_COLORS.GRAY_DARK);
         const addressLines = doc.splitTextToSize(currentBill.customer.address || 'N/A', 280);
         doc.text(addressLines, 50, 175);
         
@@ -507,17 +522,17 @@ function downloadBillPDF() {
 
         // Additional details box
         let detailsY = Math.max(240, phoneY + 30);
-        doc.setDrawColor(200, 200, 200);
+        doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
         doc.rect(40, detailsY, pageWidth - 80, 50);
         
         doc.setFontSize(9);
-        doc.setTextColor(100, 100, 100);
+        doc.setTextColor(...PDF_COLORS.GRAY_MEDIUM);
         doc.setFont(undefined, 'bold');
         doc.text('Transport:', 50, detailsY + 20);
         doc.text('Payment Mode:', 220, detailsY + 20);
         doc.text('Status:', 400, detailsY + 20);
         
-        doc.setTextColor(0, 0, 0);
+        doc.setTextColor(...PDF_COLORS.TEXT_DARK);
         doc.setFont(undefined, 'normal');
         doc.text(currentBill.transport || 'N/A', 50, detailsY + 35);
         doc.text(currentBill.paymentMode || 'N/A', 220, detailsY + 35);
@@ -525,11 +540,11 @@ function downloadBillPDF() {
         // Status with color
         const status = currentBill.status || 'N/A';
         if (status.toLowerCase() === 'paid') {
-            doc.setTextColor(22, 163, 74); // Green
+            doc.setTextColor(...PDF_COLORS.GREEN);
         } else if (status.toLowerCase() === 'pending') {
-            doc.setTextColor(234, 179, 8); // Yellow
+            doc.setTextColor(...PDF_COLORS.YELLOW);
         } else {
-            doc.setTextColor(239, 68, 68); // Red
+            doc.setTextColor(...PDF_COLORS.RED);
         }
         doc.setFont(undefined, 'bold');
         doc.text(status, 400, detailsY + 35);
@@ -551,18 +566,18 @@ function downloadBillPDF() {
             body: rows,
             theme: 'striped',
             headStyles: {
-                fillColor: [37, 99, 235],
-                textColor: 255,
+                fillColor: PDF_COLORS.PRIMARY_BLUE,
+                textColor: PDF_COLORS.WHITE[0],
                 fontSize: 10,
                 fontStyle: 'bold',
                 halign: 'center'
             },
             bodyStyles: {
                 fontSize: 9,
-                textColor: [60, 60, 60]
+                textColor: PDF_COLORS.GRAY_DARK
             },
             alternateRowStyles: {
-                fillColor: [249, 250, 251]
+                fillColor: PDF_COLORS.BG_LIGHT
             },
             columnStyles: {
                 0: { halign: 'center', cellWidth: 50 },
@@ -579,11 +594,11 @@ function downloadBillPDF() {
         const totalBoxY = finalY + 20;
         
         // Total box
-        doc.setFillColor(37, 99, 235);
+        doc.setFillColor(...PDF_COLORS.PRIMARY_BLUE);
         doc.rect(pageWidth - 240, totalBoxY, 200, 40, 'F');
         
         doc.setFontSize(14);
-        doc.setTextColor(255, 255, 255);
+        doc.setTextColor(...PDF_COLORS.WHITE);
         doc.setFont(undefined, 'bold');
         doc.text('TOTAL AMOUNT', pageWidth - 230, totalBoxY + 18);
         doc.setFontSize(16);
@@ -591,12 +606,12 @@ function downloadBillPDF() {
 
         // Footer
         const footerY = pageHeight - 50;
-        doc.setDrawColor(200, 200, 200);
+        doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
         doc.setLineWidth(0.5);
         doc.line(40, footerY, pageWidth - 40, footerY);
         
         doc.setFontSize(8);
-        doc.setTextColor(120, 120, 120);
+        doc.setTextColor(...PDF_COLORS.TEXT_LIGHT);
         doc.setFont(undefined, 'normal');
         doc.text('Thank you for your business!', pageWidth / 2, footerY + 15, { align: 'center' });
         doc.text('For any queries, please contact us at the above address', pageWidth / 2, footerY + 27, { align: 'center' });
@@ -630,12 +645,12 @@ function downloadBillsPDF(billsToExport, filename) {
             }
 
             // Header background
-            doc.setFillColor(37, 99, 235); // Blue
+            doc.setFillColor(...PDF_COLORS.PRIMARY_BLUE);
             doc.rect(0, 0, pageWidth, 100, 'F');
             
             // Company name
             doc.setFontSize(24);
-            doc.setTextColor(255, 255, 255);
+            doc.setTextColor(...PDF_COLORS.WHITE);
             doc.setFont(undefined, 'bold');
             doc.text('BALAJI SAI AUTO MOBILES', 40, 45);
             
@@ -645,42 +660,42 @@ function downloadBillsPDF(billsToExport, filename) {
 
             // Invoice title
             doc.setFontSize(20);
-            doc.setTextColor(37, 99, 235);
+            doc.setTextColor(...PDF_COLORS.PRIMARY_BLUE);
             doc.setFont(undefined, 'bold');
             doc.text('INVOICE', pageWidth - 150, 45);
 
             // Invoice details box (right side)
-            doc.setDrawColor(200, 200, 200);
+            doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
             doc.setLineWidth(1);
             doc.rect(pageWidth - 230, 120, 190, 80);
             
             doc.setFontSize(10);
-            doc.setTextColor(100, 100, 100);
+            doc.setTextColor(...PDF_COLORS.GRAY_MEDIUM);
             doc.setFont(undefined, 'bold');
             doc.text('Invoice No:', pageWidth - 220, 140);
             doc.text('Date:', pageWidth - 220, 165);
             
-            doc.setTextColor(0, 0, 0);
+            doc.setTextColor(...PDF_COLORS.TEXT_DARK);
             doc.setFont(undefined, 'normal');
             doc.text(bill.invoiceNo, pageWidth - 220, 152);
             doc.text(formatDate(bill.date), pageWidth - 220, 177);
 
             // Customer details box (left side)
-            doc.setDrawColor(200, 200, 200);
+            doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
             doc.rect(40, 120, 300, 120);
             
             doc.setFontSize(12);
-            doc.setTextColor(37, 99, 235);
+            doc.setTextColor(...PDF_COLORS.PRIMARY_BLUE);
             doc.setFont(undefined, 'bold');
             doc.text('BILL TO', 50, 140);
             
             doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
+            doc.setTextColor(...PDF_COLORS.TEXT_DARK);
             doc.setFont(undefined, 'bold');
             doc.text(bill.customer.name, 50, 160);
             
             doc.setFont(undefined, 'normal');
-            doc.setTextColor(60, 60, 60);
+            doc.setTextColor(...PDF_COLORS.GRAY_DARK);
             const addressLines = doc.splitTextToSize(bill.customer.address || 'N/A', 280);
             doc.text(addressLines, 50, 175);
             
@@ -689,17 +704,17 @@ function downloadBillsPDF(billsToExport, filename) {
 
             // Additional details box
             let detailsY = Math.max(240, phoneY + 30);
-            doc.setDrawColor(200, 200, 200);
+            doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
             doc.rect(40, detailsY, pageWidth - 80, 50);
             
             doc.setFontSize(9);
-            doc.setTextColor(100, 100, 100);
+            doc.setTextColor(...PDF_COLORS.GRAY_MEDIUM);
             doc.setFont(undefined, 'bold');
             doc.text('Transport:', 50, detailsY + 20);
             doc.text('Payment Mode:', 220, detailsY + 20);
             doc.text('Status:', 400, detailsY + 20);
             
-            doc.setTextColor(0, 0, 0);
+            doc.setTextColor(...PDF_COLORS.TEXT_DARK);
             doc.setFont(undefined, 'normal');
             doc.text(bill.transport || 'N/A', 50, detailsY + 35);
             doc.text(bill.paymentMode || 'N/A', 220, detailsY + 35);
@@ -707,11 +722,11 @@ function downloadBillsPDF(billsToExport, filename) {
             // Status with color
             const status = bill.status || 'N/A';
             if (status.toLowerCase() === 'paid') {
-                doc.setTextColor(22, 163, 74); // Green
+                doc.setTextColor(...PDF_COLORS.GREEN);
             } else if (status.toLowerCase() === 'pending') {
-                doc.setTextColor(234, 179, 8); // Yellow
+                doc.setTextColor(...PDF_COLORS.YELLOW);
             } else {
-                doc.setTextColor(239, 68, 68); // Red
+                doc.setTextColor(...PDF_COLORS.RED);
             }
             doc.setFont(undefined, 'bold');
             doc.text(status, 400, detailsY + 35);
@@ -733,18 +748,18 @@ function downloadBillsPDF(billsToExport, filename) {
                 body: rows,
                 theme: 'striped',
                 headStyles: {
-                    fillColor: [37, 99, 235],
-                    textColor: 255,
+                    fillColor: PDF_COLORS.PRIMARY_BLUE,
+                    textColor: PDF_COLORS.WHITE[0],
                     fontSize: 10,
                     fontStyle: 'bold',
                     halign: 'center'
                 },
                 bodyStyles: {
                     fontSize: 9,
-                    textColor: [60, 60, 60]
+                    textColor: PDF_COLORS.GRAY_DARK
                 },
                 alternateRowStyles: {
-                    fillColor: [249, 250, 251]
+                    fillColor: PDF_COLORS.BG_LIGHT
                 },
                 columnStyles: {
                     0: { halign: 'center', cellWidth: 50 },
@@ -761,11 +776,11 @@ function downloadBillsPDF(billsToExport, filename) {
             const totalBoxY = finalY + 20;
             
             // Total box
-            doc.setFillColor(37, 99, 235);
+            doc.setFillColor(...PDF_COLORS.PRIMARY_BLUE);
             doc.rect(pageWidth - 240, totalBoxY, 200, 40, 'F');
             
             doc.setFontSize(14);
-            doc.setTextColor(255, 255, 255);
+            doc.setTextColor(...PDF_COLORS.WHITE);
             doc.setFont(undefined, 'bold');
             doc.text('TOTAL AMOUNT', pageWidth - 230, totalBoxY + 18);
             doc.setFontSize(16);
@@ -773,12 +788,12 @@ function downloadBillsPDF(billsToExport, filename) {
 
             // Footer
             const footerY = pageHeight - 50;
-            doc.setDrawColor(200, 200, 200);
+            doc.setDrawColor(...PDF_COLORS.GRAY_LIGHT);
             doc.setLineWidth(0.5);
             doc.line(40, footerY, pageWidth - 40, footerY);
             
             doc.setFontSize(8);
-            doc.setTextColor(120, 120, 120);
+            doc.setTextColor(...PDF_COLORS.TEXT_LIGHT);
             doc.setFont(undefined, 'normal');
             doc.text('Thank you for your business!', pageWidth / 2, footerY + 15, { align: 'center' });
             doc.text('For any queries, please contact us at the above address', pageWidth / 2, footerY + 27, { align: 'center' });
