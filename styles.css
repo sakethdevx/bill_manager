@@ -230,6 +230,72 @@ body {
     }
 }
 
+/* Mobile-specific fixes for login page */
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 16px;
+    }
+
+    .auth-card {
+        border-radius: 12px;
+    }
+
+    .auth-left {
+        padding: 20px;
+    }
+
+    .auth-right {
+        padding: 20px;
+        position: relative;
+    }
+
+    /* Fix language selector positioning on mobile */
+    .auth-header div[style*="position:absolute"] {
+        position: static !important;
+        display: flex;
+        justify-content: center;
+        margin-top: 12px;
+        margin-bottom: 8px;
+    }
+
+    .auth-header {
+        margin-bottom: 24px;
+    }
+
+    .auth-header h2 {
+        font-size: 1.4rem;
+        margin-bottom: 8px;
+    }
+
+    .logo-mark {
+        width: 48px;
+        height: 48px;
+        font-size: 1rem;
+    }
+
+    .brand-text h1 {
+        font-size: 1rem;
+    }
+
+    .brand-text p {
+        font-size: 0.8rem;
+    }
+
+    .brand-lead {
+        font-size: 0.85rem;
+    }
+
+    .auth-body .form-group input {
+        padding: 10px 12px;
+        font-size: 0.95rem;
+    }
+
+    .btn-block {
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+}
+
 .auth-header {
     text-align: center;
     margin-bottom: 30px;
