@@ -1493,6 +1493,7 @@ input[style] {
 
     /* Stock management mobile layout */
     .stock-manager {
+        grid-template-columns: 1fr;
         gap: 20px;
     }
 
