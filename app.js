@@ -42,7 +42,8 @@ async function loadAllData() {
         try {
             let changed = false;
             // helper to test short code
-            const isShort = (c) => /^ITM\d{3}$/i.test(String(c || ''));
+            // allow 3 or 4 digit ITM codes (supports up to 9999 items)
+            const isShort = (c) => /^ITM\d{3,4}$/i.test(String(c || ''));
             inventory.forEach(item => {
                 if (!item.code || !isShort(item.code)) {
                     item.code = generateNextItemCode();
@@ -532,7 +533,8 @@ function generateNextItemCode() {
             }
         });
         const next = max + 1;
-        return 'ITM' + String(next).padStart(3, '0');
+        // pad to 4 digits to safely support up to 1000+ items: ITM0001 ... ITM1000
+        return 'ITM' + String(next).padStart(4, '0');
     } catch (e) {
         // fallback to short random code
         return 'ITM' + Math.random().toString(36).substr(2, 4).toUpperCase();
