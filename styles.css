@@ -261,10 +261,13 @@ body {
     /* Container and card adjustments */
     .auth-container {
         padding: 16px;
+        overflow: hidden;
     }
 
     .auth-card {
         border-radius: 12px;
+        max-height: calc(100vh - 32px);
+        overflow-y: auto;
     }
 
     .auth-left {
