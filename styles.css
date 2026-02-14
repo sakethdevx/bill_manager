@@ -1123,6 +1123,24 @@ input[style] {
     visibility: visible;
 }
 
+/* Strong overrides to prevent accidental hiding/clipping of action buttons */
+.data-table td {
+    overflow: visible !important;
+}
+
+.data-table td .table-actions,
+.data-table td.table-actions {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.table-actions button {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
 .table-actions button {
     padding: 6px 12px;
     border: none;
