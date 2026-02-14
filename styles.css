@@ -254,8 +254,9 @@ body {
     }
 }
 
-/* Mobile-specific fixes for login page */
+/* Mobile-specific optimizations for login page */
 @media (max-width: 480px) {
+    /* Container and card adjustments */
     .auth-container {
         padding: 16px;
     }
@@ -273,6 +274,7 @@ body {
         position: relative;
     }
 
+    /* Header and branding typography */
     .auth-header {
         margin-bottom: 24px;
     }
@@ -300,6 +302,7 @@ body {
         font-size: 0.85rem;
     }
 
+    /* Form elements */
     .auth-body .form-group input {
         padding: 10px 12px;
         font-size: 0.95rem;
