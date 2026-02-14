@@ -38,6 +38,25 @@ async function loadAllData() {
         inventory = state.inventory || [];
         stockHistory = state.stockHistory || [];
 
+        // Normalize existing inventory codes to short sequential format if needed
+        try {
+            let changed = false;
+            // helper to test short code
+            const isShort = (c) => /^ITM\d{3}$/i.test(String(c || ''));
+            inventory.forEach(item => {
+                if (!item.code || !isShort(item.code)) {
+                    item.code = generateNextItemCode();
+                    changed = true;
+                }
+            });
+            if (changed) {
+                // persist normalization back to state
+                await saveState();
+            }
+        } catch (e) {
+            console.warn('Inventory code normalization failed:', e);
+        }
+
         loadInventory();
         updateStockItemSelect();
         loadBills();
