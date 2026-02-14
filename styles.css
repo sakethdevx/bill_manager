@@ -655,7 +655,7 @@ input[style] {
 
 /* Form container refinement */
 .form-container {
-    padding: 28px;
+    padding: 20px;
     border-radius: 12px;
 }
 
@@ -788,7 +788,7 @@ input[style] {
 /* Forms */
 .form-container {
     background: var(--white);
-    padding: 30px;
+    padding: 20px;
     border-radius: 12px;
     box-shadow: var(--shadow);
     margin-bottom: 30px;
@@ -798,41 +798,43 @@ input[style] {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
     border-bottom: 2px solid var(--border-color);
 }
 
 .form-header h3 {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     color: var(--text-primary);
+    margin: 0;
 }
 
 .form-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    gap: 15px;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
     font-weight: 500;
     color: var(--text-primary);
+    font-size: 0.9rem;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 10px 15px;
+    padding: 8px 12px;
     border: 2px solid var(--border-color);
     border-radius: 8px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     transition: all 0.3s;
     font-family: inherit;
 }
@@ -846,35 +848,36 @@ input[style] {
 
 .form-actions {
     display: flex;
-    gap: 15px;
-    margin-top: 25px;
+    gap: 10px;
+    margin-top: 15px;
     flex-wrap: wrap;
 }
 
 /* Items Section */
 .items-section {
-    margin: 25px 0;
-    padding: 20px;
+    margin: 15px 0;
+    padding: 15px;
     background: var(--light-bg);
     border-radius: 8px;
 }
 
 .items-section h4 {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
 }
 
 .items-list {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
 }
 
 .item-row {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 1fr auto;
-    gap: 10px;
+    gap: 8px;
     align-items: end;
-    padding: 15px;
+    padding: 10px;
     background: var(--white);
     border-radius: 8px;
     border: 2px solid var(--border-color);
@@ -895,7 +898,7 @@ input[style] {
 }
 
 .item-field label {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: var(--text-secondary);
 }
@@ -916,15 +919,16 @@ input[style] {
 
 .total-section {
     text-align: right;
-    margin: 20px 0;
-    padding: 20px;
+    margin: 15px 0;
+    padding: 12px 15px;
     background: var(--light-bg);
     border-radius: 8px;
 }
 
 .total-section h3 {
     color: var(--success-color);
-    font-size: 1.5rem;
+    font-size: 1.3rem;
+    margin: 0;
 }
 
 /* Tables */
