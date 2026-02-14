@@ -479,6 +479,10 @@ function downloadBillPDF() {
         doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
         doc.setFont(undefined, 'normal');
         doc.text('Auto Nagar, Eluru Road, JANGAREDDYGUDEM', margin, 82);
+        
+        // GST and Phone number
+        doc.setFontSize(8);
+        doc.text('GSTIN: 37BGLPV7608B1Z3  |  Cell: 9490350878', margin, 95);
 
         // Invoice title - right aligned, elegant
         doc.setFontSize(28);
@@ -489,10 +493,10 @@ function downloadBillPDF() {
         // Thin separator line
         doc.setDrawColor(...PDF_COLORS.BORDER_LIGHT);
         doc.setLineWidth(0.5);
-        doc.line(margin, 95, pageWidth - margin, 95);
+        doc.line(margin, 108, pageWidth - margin, 108);
 
         // Invoice details - clean layout
-        let currentY = 120;
+        let currentY = 133;
         doc.setFontSize(9);
         doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
         doc.setFont(undefined, 'bold');
@@ -506,7 +510,7 @@ function downloadBillPDF() {
         doc.text(formatDate(currentBill.date), pageWidth - margin, currentY + 20, { align: 'right' });
 
         // Bill To section - refined
-        currentY = 120;
+        currentY = 133;
         doc.setFontSize(9);
         doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
         doc.setFont(undefined, 'bold');
@@ -685,6 +689,10 @@ function downloadBillsPDF(billsToExport, filename) {
             doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
             doc.setFont(undefined, 'normal');
             doc.text('Auto Nagar, Eluru Road, JANGAREDDYGUDEM', margin, 82);
+            
+            // GST and Phone number
+            doc.setFontSize(8);
+            doc.text('GSTIN: 37BGLPV7608B1Z3  |  Cell: 9490350878', margin, 95);
 
             // Invoice title - right aligned, elegant
             doc.setFontSize(28);
@@ -695,10 +703,10 @@ function downloadBillsPDF(billsToExport, filename) {
             // Thin separator line
             doc.setDrawColor(...PDF_COLORS.BORDER_LIGHT);
             doc.setLineWidth(0.5);
-            doc.line(margin, 95, pageWidth - margin, 95);
+            doc.line(margin, 108, pageWidth - margin, 108);
 
             // Invoice details - clean layout
-            let currentY = 120;
+            let currentY = 133;
             doc.setFontSize(9);
             doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
             doc.setFont(undefined, 'bold');
@@ -712,7 +720,7 @@ function downloadBillsPDF(billsToExport, filename) {
             doc.text(formatDate(bill.date), pageWidth - margin, currentY + 20, { align: 'right' });
 
             // Bill To section - refined
-            currentY = 120;
+            currentY = 133;
             doc.setFontSize(9);
             doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
             doc.setFont(undefined, 'bold');
