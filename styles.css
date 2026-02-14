@@ -201,6 +201,13 @@ body {
 
 .data-table th:nth-child(1),
 .data-table td:nth-child(1) {
+    /* Default: allow column to size naturally. Specific tables that need code-width
+       will override this below (inventory table). */
+}
+
+/* Item code sizing only for inventory table first column */
+#inventoryTableContainer .data-table th:nth-child(1),
+#inventoryTableContainer .data-table td:nth-child(1) {
     max-width: 170px;
     width: 170px;
     white-space: nowrap;
