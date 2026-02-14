@@ -989,6 +989,30 @@ input[style] {
     border-radius: 6px;
 }
 
+/* Ensure each grid cell for export columns is visually consistent */
+.columns-list .col-option {
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 4px 6px;
+}
+
+.columns-list .col-option label {
+    width: 100%;
+    margin: 0;
+    padding: 6px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 6px;
+    background: transparent;
+}
+
+.columns-list input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+}
+
 .export-filters {
     display: flex;
     flex-direction: column;
