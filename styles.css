@@ -262,6 +262,7 @@ body {
     .auth-container {
         padding: 16px;
         overflow: hidden;
+        align-items: flex-start;
     }
 
     .auth-card {
