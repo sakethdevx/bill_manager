@@ -504,7 +504,8 @@ document.getElementById('inventoryForm').addEventListener('submit', function (e)
     e.preventDefault();
     const item = {
         id: uid('item'),
-        code: document.getElementById('itemCode').value || `ITM${Date.now()}`,
+        // Use shorter, human-friendly auto-generated code when not provided
+        code: document.getElementById('itemCode').value || `ITM${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
         name: document.getElementById('itemName').value,
         rate: parseFloat(document.getElementById('itemRate').value),
         stock: parseInt(document.getElementById('itemStock').value) || 0,

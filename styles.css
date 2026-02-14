@@ -193,6 +193,23 @@ body {
     background: #fff;
 }
 
+/* Item code sizing: medium length, ellipsis in table */
+#itemCode {
+    max-width: 260px;
+    width: 100%;
+}
+
+.data-table th:nth-child(1),
+.data-table td:nth-child(1) {
+    max-width: 170px;
+    width: 170px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;
+    font-size: 0.95rem;
+}
+
 /* Make auth card responsive */
 @media (max-width: 880px) {
     .auth-card {
