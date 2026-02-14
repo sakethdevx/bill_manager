@@ -20,11 +20,11 @@
                 <div class="brand">
                     <div class="logo-mark">BS</div>
                     <div class="brand-text">
-                        <h1>BALAJI SAI AUTOMOBILES</h1>
-                        <p>Bill Manager — Auto Mobiles</p>
+                        <h1 data-i18n="brand_title">BALAJI SAI AUTOMOBILES</h1>
+                        <p data-i18n="brand_sub">Bill Manager — Auto Mobiles</p>
                     </div>
                 </div>
-                <p class="brand-lead">Manage bills, inventory and stock — fast and simple.</p>
+                <p class="brand-lead" data-i18n="brand_lead">Manage bills, inventory and stock — fast and simple.</p>
                 <div class="brand-illustration" aria-hidden="true">
                     <!-- subtle decorative shape -->
                 </div>
@@ -32,33 +32,42 @@
 
             <div class="auth-right">
                 <div class="auth-header">
-                    <h2>Welcome back</h2>
-                    <p class="muted">Sign in to continue to your dashboard</p>
+                    <h2 data-i18n="welcome_back">Welcome back</h2>
+                    <p class="muted" data-i18n="sign_in_muted">Sign in to continue to your dashboard</p>
+                    <div style="position:absolute;right:16px;top:16px">
+                        <select id="language-select" aria-label="Language selector"
+                            style="padding:6px 8px;border-radius:6px;border:1px solid var(--border-color)">
+                            <option value="en">EN</option>
+                            <option value="te">తెలుగు</option>
+                        </select>
+                    </div>
                 </div>
 
                 <form class="auth-body"
                     onsubmit="event.preventDefault(); supabaseSignIn(document.getElementById('login-email').value, document.getElementById('login-password').value)">
                     <div class="form-group">
-                        <label for="login-email">Email</label>
+                        <label for="login-email" data-i18n="label_email">Email</label>
                         <input type="email" id="login-email" placeholder="you@company.com" required
                             autocomplete="username">
                     </div>
 
                     <div class="form-group">
-                        <label for="login-password">Password</label>
+                        <label for="login-password" data-i18n="label_password">Password</label>
                         <input type="password" id="login-password" placeholder="Enter your password" required
                             autocomplete="current-password">
                     </div>
 
                     <div class="auth-row form-actions-row">
-                        <label class="remember"><input type="checkbox" id="rememberMe"> Remember me</label>
-                        <a href="#" class="forgot"
-                            onclick="event.preventDefault(); window.sendPasswordReset();">Forgot?</a>
+                        <label class="remember"><input type="checkbox" id="rememberMe"> <span
+                                data-i18n="remember_me">Remember me</span></label>
+                        <a href="#" class="forgot" onclick="event.preventDefault(); window.sendPasswordReset();"
+                            data-i18n="forgot">Forgot?</a>
                     </div>
 
-                    <button class="btn btn-primary btn-block" type="submit">Sign In</button>
+                    <button class="btn btn-primary btn-block" type="submit" data-i18n="sign_in_btn">Sign In</button>
 
-                    <p class="auth-note">New here? Contact the administrator to create an account.</p>
+                    <p class="auth-note" data-i18n="auth_note">New here? Contact the administrator to create an account.
+                    </p>
                 </form>
             </div>
         </div>
@@ -464,6 +473,7 @@
     </div>
 
     <script src="supabase-config.js"></script>
+    <script src="translations.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
