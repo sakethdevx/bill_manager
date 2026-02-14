@@ -1388,21 +1388,30 @@ input[style] {
     }
 
     .nav-buttons {
-        justify-content: stretch;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 8px;
+        width: 100%;
     }
 
     .nav-btn {
-        flex: 1;
-        padding: 8px 12px;
+        padding: 10px 12px;
         font-size: 0.9rem;
+        text-align: center;
+        width: 100%;
     }
 
-    .nav-left,
+    .nav-left {
+        justify-content: center;
+        text-align: center;
+        width: 100%;
+    }
+
     .nav-right {
         flex-wrap: wrap;
         justify-content: center;
         gap: 10px;
+        width: 100%;
     }
 
     .user-info {
@@ -1410,7 +1419,24 @@ input[style] {
     }
 
     .item-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        position: relative;
+        padding-right: 40px;
+    }
+
+    .item-row .item-field {
+        min-width: 0;
+    }
+
+    .item-row .item-field:first-child {
+        grid-column: 1 / -1;
+    }
+
+    .item-row .remove-item-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
     }
 
     .form-row {
@@ -1449,7 +1475,7 @@ input[style] {
 
     .data-table {
         font-size: 0.85rem;
-        min-width: 600px;
+        min-width: 700px;
     }
 
     .data-table th,
@@ -1471,12 +1497,47 @@ input[style] {
         padding: 15px;
     }
 
+    .modal-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .modal-actions .btn {
+        width: 100%;
+    }
+
     .bill-view {
         padding: 15px;
     }
 
     .bill-info {
         grid-template-columns: 1fr;
+    }
+
+    /* List header improvements for mobile */
+    .list-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .list-header h3 {
+        text-align: left;
+    }
+
+    .list-header .header-controls {
+        width: 100%;
+    }
+
+    /* Table actions mobile layout */
+    .table-actions {
+        display: flex;
+        gap: 4px;
+    }
+
+    .table-actions button {
+        font-size: 0.8rem;
+        padding: 5px 8px;
     }
 
     /* Form improvements for mobile */
@@ -1500,10 +1561,14 @@ input[style] {
     .stock-manager {
         grid-template-columns: 1fr;
         gap: 20px;
+        min-width: 0;
+        overflow: hidden;
     }
 
     .stock-history {
         padding: 15px;
+        min-width: 0;
+        overflow-x: auto;
     }
 
     .stock-history h3 {
@@ -1597,7 +1662,7 @@ input[style] {
 
     .data-table {
         font-size: 0.8rem;
-        min-width: 500px;
+        min-width: 600px;
     }
 
     .data-table th,
