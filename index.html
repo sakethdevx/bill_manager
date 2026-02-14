@@ -126,10 +126,10 @@
         <section id="bills-section" class="section active">
             <div class="section-header">
                 <h2>📄 Bill Management</h2>
-                <div style="display:flex;gap:12px;align-items:center;">
+                <div class="header-controls">
                     <button class="btn btn-primary" onclick="showNewBillForm()">+ New Bill</button>
-                    <input id="billsSearch" type="search" placeholder="Search bills..."
-                        style="padding:8px 12px;border-radius:8px;border:1px solid var(--border-color);">
+                    <input id="billsSearch" class="control-input search-input" type="search"
+                        placeholder="Search bills...">
                 </div>
             </div>
 
@@ -220,11 +220,12 @@
             <div class="bills-list">
                 <div class="list-header">
                     <h3>All Bills</h3>
-                    <div style="display:flex;gap:10px;align-items:center;">
+                    <div class="header-controls">
                         <button class="btn btn-info" onclick="exportBills()">📥 Export Bills</button>
-                        <label style="font-size:0.9rem;color:var(--text-secondary)">Per page:
-                            <select id="billsPerPage"
-                                style="margin-left:6px;padding:6px;border-radius:6px;border:1px solid var(--border-color)">
+                        <label
+                            style="font-size:0.9rem;color:var(--text-secondary);display:flex;align-items:center;gap:8px;">Per
+                            page:
+                            <select id="billsPerPage" class="control-input" style="min-width:72px;">
                                 <option>10</option>
                                 <option>25</option>
                                 <option>50</option>

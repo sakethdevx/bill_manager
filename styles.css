@@ -503,6 +503,53 @@ input[type="search"]:focus,
     z-index: 2;
 }
 
+/* Bills/header specific controls */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.section-header .header-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.list-header .header-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Make toolbar wrap nicely on small screens */
+@media (max-width: 720px) {
+
+    .section-header,
+    .list-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .section-header .header-controls,
+    .list-header .header-controls {
+        justify-content: space-between;
+    }
+
+    .header-controls .control-input,
+    .header-controls .btn {
+        width: 100%;
+    }
+}
+
 .data-table tbody td {
     padding: 12px 14px;
     border-bottom: 1px solid #f1f5f9;
