@@ -16,6 +16,14 @@ const PDF_COLORS = {
     STATUS_OTHER: [239, 68, 68]        // Red
 };
 
+// Company Information for PDF
+const COMPANY_INFO = {
+    NAME: 'BALAJI SAI AUTO MOBILES',
+    ADDRESS: 'Auto Nagar, Eluru Road, JANGAREDDYGUDEM',
+    GSTIN: '37BGLPV7608B1Z3',
+    PHONE: '9490350878'
+};
+
 // Data Storage
 let bills = [];
 let inventory = [];
@@ -473,16 +481,16 @@ function downloadBillPDF() {
         doc.setFontSize(22);
         doc.setTextColor(...PDF_COLORS.PRIMARY_DARK);
         doc.setFont(undefined, 'bold');
-        doc.text('BALAJI SAI AUTO MOBILES', margin, 65);
+        doc.text(COMPANY_INFO.NAME, margin, 65);
         
         doc.setFontSize(9);
         doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
         doc.setFont(undefined, 'normal');
-        doc.text('Auto Nagar, Eluru Road, JANGAREDDYGUDEM', margin, 82);
+        doc.text(COMPANY_INFO.ADDRESS, margin, 82);
         
         // GST and Phone number
         doc.setFontSize(8);
-        doc.text('GSTIN: 37BGLPV7608B1Z3  |  Cell: 9490350878', margin, 95);
+        doc.text(`GSTIN: ${COMPANY_INFO.GSTIN}  |  Cell: ${COMPANY_INFO.PHONE}`, margin, 95);
 
         // Invoice title - right aligned, elegant
         doc.setFontSize(28);
@@ -683,16 +691,16 @@ function downloadBillsPDF(billsToExport, filename) {
             doc.setFontSize(22);
             doc.setTextColor(...PDF_COLORS.PRIMARY_DARK);
             doc.setFont(undefined, 'bold');
-            doc.text('BALAJI SAI AUTO MOBILES', margin, 65);
+            doc.text(COMPANY_INFO.NAME, margin, 65);
             
             doc.setFontSize(9);
             doc.setTextColor(...PDF_COLORS.TEXT_SECONDARY);
             doc.setFont(undefined, 'normal');
-            doc.text('Auto Nagar, Eluru Road, JANGAREDDYGUDEM', margin, 82);
+            doc.text(COMPANY_INFO.ADDRESS, margin, 82);
             
             // GST and Phone number
             doc.setFontSize(8);
-            doc.text('GSTIN: 37BGLPV7608B1Z3  |  Cell: 9490350878', margin, 95);
+            doc.text(`GSTIN: ${COMPANY_INFO.GSTIN}  |  Cell: ${COMPANY_INFO.PHONE}`, margin, 95);
 
             // Invoice title - right aligned, elegant
             doc.setFontSize(28);
