@@ -230,6 +230,19 @@ body {
     }
 }
 
+/* Language selector positioning in auth header */
+.auth-language-selector {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+}
+
+.auth-language-selector .language-select {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
 /* Mobile-specific fixes for login page */
 @media (max-width: 480px) {
     .auth-container {
@@ -250,8 +263,8 @@ body {
     }
 
     /* Fix language selector positioning on mobile */
-    .auth-header div[style*="position:absolute"] {
-        position: static !important;
+    .auth-language-selector {
+        position: static;
         display: flex;
         justify-content: center;
         margin-top: 12px;
