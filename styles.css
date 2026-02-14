@@ -463,13 +463,18 @@ input[type="search"]:focus,
     justify-content: space-between;
     align-items: center;
     margin-bottom: 25px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 15px;
 }
 
 .section-header h2 {
     font-size: 1.8rem;
     color: var(--text-primary);
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Streamline header buttons (New/Add) across pages */
@@ -561,6 +566,20 @@ input[style] {
     display: flex;
     gap: 12px;
     align-items: center;
+}
+
+/* keep header controls on same row; allow title to shrink */
+.section-header .header-controls,
+.list-header .header-controls {
+    flex: 0 0 auto;
+}
+
+.list-header h3 {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .list-header {
