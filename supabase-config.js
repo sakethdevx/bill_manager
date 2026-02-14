@@ -27,7 +27,8 @@
                 // Load app data after authenticated
                 if (window.loadAllData) window.loadAllData();
             } else {
-                document.getElementById('auth-container').style.display = 'block';
+                // Keep the auth container as a flex container so centering isn't lost
+                document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('app-container').style.display = 'none';
             }
         };
