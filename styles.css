@@ -1109,6 +1109,20 @@ input[style] {
     gap: 8px;
 }
 
+/* Ensure action buttons are always visible (some print/media or accidental rules
+   may hide them). Keep a subtle transition but don't hide by default. */
+.table-actions {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    justify-content: flex-end;
+}
+
+.table-actions button {
+    opacity: 1;
+    visibility: visible;
+}
+
 .table-actions button {
     padding: 6px 12px;
     border: none;
