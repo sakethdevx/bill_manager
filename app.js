@@ -468,6 +468,49 @@ function downloadBillPDF() {
     }
 }
 
+// Download multiple bills as PDF (one bill per page)
+function downloadBillsPDF(billsToExport, filename) {
+    if (!billsToExport || billsToExport.length === 0) {
+        alert('No bills to export');
+        return;
+    }
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+        billsToExport.forEach((bill, billIndex) => {
+            if (billIndex > 0) {
+                doc.addPage();
+            }
+
+            doc.setFontSize(18);
+            doc.setTextColor('#2563eb');
+            doc.text('BALAJI SAI AUTO MOBILES', 40, 50);
+
+            doc.setFontSize(12);
+            doc.setTextColor('#000');
+            doc.text(`Invoice: ${bill.invoiceNo}`, 40, 80);
+            doc.text(`Date: ${formatDate(bill.date)}`, 40, 96);
+            doc.text(`Customer: ${bill.customer.name}`, 40, 112);
+            doc.text(`Phone: ${bill.customer.phone || 'N/A'}`, 40, 128);
+
+            const cols = ['S.No', 'Particulars', 'Qty', 'Unit Rate', 'Amount'];
+            const rows = bill.items.map((it, idx) => [idx + 1, it.name, String(it.qty), `₹${it.rate.toFixed(2)}`, `₹${it.amount.toFixed(2)}`]);
+
+            doc.autoTable({ startY: 150, head: [cols], body: rows, styles: { fontSize: 10 } });
+
+            const finalY = doc.lastAutoTable.finalY || 300;
+            doc.setFontSize(14);
+            doc.text(`Total: ₹${bill.total.toFixed(2)}`, 40, finalY + 30);
+        });
+
+        doc.save(filename + '.pdf');
+    } catch (err) {
+        console.error('PDF export error', err);
+        alert('Unable to generate PDF. Check console for details.');
+    }
+}
+
 function closeBillModal() {
     document.getElementById('billViewModal').classList.remove('active');
     currentBill = null;
@@ -828,6 +871,18 @@ function initExportSection() {
         const ds = datasetSelect.value;
         const format = formatSelect.value;
         const data = getFilteredData(ds);
+        
+        // PDF export only works for bills
+        if (format === 'pdf') {
+            if (ds !== 'bills') {
+                alert('PDF export is only available for Bills');
+                return;
+            }
+            const filename = `bills_export_${new Date().toISOString().slice(0, 10)}`;
+            downloadBillsPDF(data, filename);
+            return;
+        }
+        
         const selected = getSelectedColumns();
         const rows = prepareRows(data, selected);
         const filename = `${ds}_export_${new Date().toISOString().slice(0, 10)}`;
