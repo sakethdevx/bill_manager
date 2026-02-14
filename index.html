@@ -14,41 +14,52 @@
 <body>
     <!-- Authentication Container -->
     <div id="auth-container" class="auth-container">
-        <!-- Login Card -->
-        <div id="login-form" class="auth-form">
-            <div class="auth-top">
-                <div class="auth-logo">
+        <div class="auth-card" role="region" aria-label="Authentication">
+            <div class="auth-left">
+                <div class="brand">
                     <div class="logo-mark">BS</div>
-                    <div class="logo-text">
+                    <div class="brand-text">
                         <h1>BALAJI SAI</h1>
-                        <p>Auto Mobiles • Bill Manager</p>
+                        <p>Bill Manager — Auto Mobiles</p>
                     </div>
                 </div>
-                <p class="auth-sub">Sign in to access your bills and inventory</p>
+                <p class="brand-lead">Manage bills, inventory and stock — fast and simple.</p>
+                <div class="brand-illustration" aria-hidden="true">
+                    <!-- subtle decorative shape -->
+                </div>
             </div>
 
-            <form class="auth-body"
-                onsubmit="event.preventDefault(); supabaseSignIn(document.getElementById('login-email').value, document.getElementById('login-password').value)">
-                <div class="form-group">
-                    <label for="login-email">Email</label>
-                    <input type="email" id="login-email" placeholder="you@company.com" required>
+            <div class="auth-right">
+                <div class="auth-header">
+                    <h2>Welcome back</h2>
+                    <p class="muted">Sign in to continue to your dashboard</p>
                 </div>
 
-                <div class="form-group">
-                    <label for="login-password">Password</label>
-                    <input type="password" id="login-password" placeholder="Enter your password" required>
-                </div>
+                <form class="auth-body"
+                    onsubmit="event.preventDefault(); supabaseSignIn(document.getElementById('login-email').value, document.getElementById('login-password').value)">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" placeholder="you@company.com" required
+                            autocomplete="username">
+                    </div>
 
-                <div class="auth-row">
-                    <label class="remember"><input type="checkbox" id="rememberMe"> Remember me</label>
-                    <a href="#" class="forgot">Forgot password?</a>
-                </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="Enter your password" required
+                            autocomplete="current-password">
+                    </div>
 
-                <button class="btn btn-primary btn-block" type="submit">Sign In</button>
+                    <div class="auth-row form-actions-row">
+                        <label class="remember"><input type="checkbox" id="rememberMe"> Remember me</label>
+                        <a href="#" class="forgot"
+                            onclick="event.preventDefault(); window.sendPasswordReset();">Forgot?</a>
+                    </div>
 
-                <p class="auth-note">Users are managed via the Supabase dashboard. Contact the administrator to create
-                    an account.</p>
-            </form>
+                    <button class="btn btn-primary btn-block" type="submit">Sign In</button>
+
+                    <p class="auth-note">New here? Contact the administrator to create an account.</p>
+                </form>
+            </div>
         </div>
     </div>
 

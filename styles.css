@@ -36,20 +36,55 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
+    background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%);
+    padding: 24px;
     z-index: 9999;
 }
 
-.auth-form {
+.auth-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
     background: var(--white);
-    padding: 40px;
-    border-radius: 16px;
-    box-shadow: var(--shadow-lg);
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(20, 30, 60, 0.08);
+    overflow: hidden;
+    max-width: 920px;
     width: 100%;
-    max-width: 420px;
-    /* Use opacity-only fade to avoid vertical shift on load */
-    animation: fadeInOpacity 0.35s ease-out;
+    min-height: 420px;
+    animation: fadeInOpacity 0.25s ease-out;
+}
+
+.auth-left {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    padding: 36px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+}
+
+.auth-right {
+    padding: 36px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.brand-text h1 {
+    font-size: 1.15rem;
+    margin: 0;
+}
+
+.brand-lead {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
 }
 
 /* Use flex centering from the container to avoid layout jumps */
@@ -103,6 +138,18 @@ body {
     font-size: 0.95rem;
 }
 
+.auth-header h2 {
+    margin: 0 0 6px 0;
+    font-size: 1.3rem;
+    color: var(--text-primary);
+}
+
+.auth-header .muted {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+}
+
 .auth-body .form-group input {
     padding: 12px 14px;
     border-radius: 10px;
@@ -132,6 +179,34 @@ body {
     color: var(--text-secondary);
     font-size: 0.9rem;
     text-align: center;
+}
+
+.form-actions-row {
+    gap: 12px;
+}
+
+/* inputs inside auth card */
+.auth-body .form-group input {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: #fff;
+}
+
+/* Make auth card responsive */
+@media (max-width: 880px) {
+    .auth-card {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+
+    .auth-left {
+        padding: 28px;
+    }
+
+    .auth-right {
+        padding: 28px;
+    }
 }
 
 .auth-header {
