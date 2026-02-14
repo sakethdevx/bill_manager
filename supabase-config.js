@@ -72,7 +72,10 @@
                 }
                 if (!email) return;
 
-                const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: location.origin });
+                // Ensure reset links redirect to the deployed site so users complete recovery there
+                const productionRedirect = 'https://bill-manager-gamma.vercel.app';
+                const redirectTo = productionRedirect;
+                const { error } = await window.supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
                 if (error) {
                     alert('Unable to send reset email: ' + error.message);
                 } else {
