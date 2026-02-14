@@ -51,12 +51,13 @@ body {
     animation: fadeInUp 0.5s ease-out;
 }
 
-/* Force center the auth card even if other layout rules interfere */
+/* Use flex centering from the container to avoid layout jumps */
 .auth-container .auth-form {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    margin: 0 auto;
 }
 
 .auth-top {
