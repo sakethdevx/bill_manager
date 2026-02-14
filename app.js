@@ -445,17 +445,37 @@ function downloadBillPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ unit: 'pt', format: 'a4' });
 
+        // Company header
         doc.setFontSize(18);
         doc.setTextColor('#2563eb');
         doc.text('BALAJI SAI AUTO MOBILES', 40, 50);
+        
+        doc.setFontSize(10);
+        doc.setTextColor('#666');
+        doc.text('Auto Nagar, Eluru Road, JANGAREDDYGUDEM', 40, 68);
 
-        doc.setFontSize(12);
+        // Bill details
+        doc.setFontSize(11);
         doc.setTextColor('#000');
-        doc.text(`Invoice: ${currentBill.invoiceNo}`, 40, 80);
-        doc.text(`Date: ${formatDate(currentBill.date)}`, 40, 96);
-        doc.text(`Customer: ${currentBill.customer.name}`, 40, 112);
-        doc.text(`Phone: ${currentBill.customer.phone || 'N/A'}`, 40, 128);
+        let yPos = 95;
+        doc.text(`Invoice No: ${currentBill.invoiceNo}`, 40, yPos);
+        doc.text(`Date: ${formatDate(currentBill.date)}`, 300, yPos);
+        
+        yPos += 18;
+        doc.text(`Customer: ${currentBill.customer.name}`, 40, yPos);
+        doc.text(`Phone: ${currentBill.customer.phone || 'N/A'}`, 300, yPos);
+        
+        yPos += 18;
+        doc.text(`Address: ${currentBill.customer.address || 'N/A'}`, 40, yPos);
+        
+        yPos += 18;
+        doc.text(`Transport: ${currentBill.transport || 'N/A'}`, 40, yPos);
+        doc.text(`Payment: ${currentBill.paymentMode || 'N/A'}`, 300, yPos);
+        
+        yPos += 18;
+        doc.text(`Status: ${currentBill.status || 'N/A'}`, 40, yPos);
 
+        // Items table
         const cols = ['S.No', 'Particulars', 'Qty', 'Unit Rate', 'Amount'];
         const rows = currentBill.items.map((it, idx) => [
             idx + 1, 
@@ -465,7 +485,12 @@ function downloadBillPDF() {
             `₹${it.amount.toFixed(2)}`
         ]);
 
-        doc.autoTable({ startY: 150, head: [cols], body: rows, styles: { fontSize: 10 } });
+        doc.autoTable({ 
+            startY: yPos + 25, 
+            head: [cols], 
+            body: rows, 
+            styles: { fontSize: 10 } 
+        });
 
         const finalY = doc.lastAutoTable.finalY || 300;
         doc.setFontSize(14);
@@ -497,17 +522,37 @@ function downloadBillsPDF(billsToExport, filename) {
                 doc.addPage();
             }
 
+            // Company header
             doc.setFontSize(18);
             doc.setTextColor('#2563eb');
             doc.text('BALAJI SAI AUTO MOBILES', 40, 50);
+            
+            doc.setFontSize(10);
+            doc.setTextColor('#666');
+            doc.text('Auto Nagar, Eluru Road, JANGAREDDYGUDEM', 40, 68);
 
-            doc.setFontSize(12);
+            // Bill details
+            doc.setFontSize(11);
             doc.setTextColor('#000');
-            doc.text(`Invoice: ${bill.invoiceNo}`, 40, 80);
-            doc.text(`Date: ${formatDate(bill.date)}`, 40, 96);
-            doc.text(`Customer: ${bill.customer.name}`, 40, 112);
-            doc.text(`Phone: ${bill.customer.phone || 'N/A'}`, 40, 128);
+            let yPos = 95;
+            doc.text(`Invoice No: ${bill.invoiceNo}`, 40, yPos);
+            doc.text(`Date: ${formatDate(bill.date)}`, 300, yPos);
+            
+            yPos += 18;
+            doc.text(`Customer: ${bill.customer.name}`, 40, yPos);
+            doc.text(`Phone: ${bill.customer.phone || 'N/A'}`, 300, yPos);
+            
+            yPos += 18;
+            doc.text(`Address: ${bill.customer.address || 'N/A'}`, 40, yPos);
+            
+            yPos += 18;
+            doc.text(`Transport: ${bill.transport || 'N/A'}`, 40, yPos);
+            doc.text(`Payment: ${bill.paymentMode || 'N/A'}`, 300, yPos);
+            
+            yPos += 18;
+            doc.text(`Status: ${bill.status || 'N/A'}`, 40, yPos);
 
+            // Items table
             const cols = ['S.No', 'Particulars', 'Qty', 'Unit Rate', 'Amount'];
             const rows = bill.items.map((it, idx) => [
                 idx + 1, 
@@ -517,7 +562,12 @@ function downloadBillsPDF(billsToExport, filename) {
                 `₹${it.amount.toFixed(2)}`
             ]);
 
-            doc.autoTable({ startY: 150, head: [cols], body: rows, styles: { fontSize: 10 } });
+            doc.autoTable({ 
+                startY: yPos + 25, 
+                head: [cols], 
+                body: rows, 
+                styles: { fontSize: 10 } 
+            });
 
             const finalY = doc.lastAutoTable.finalY || 300;
             doc.setFontSize(14);
