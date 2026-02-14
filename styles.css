@@ -467,7 +467,7 @@ input[type="search"]:focus,
     justify-content: space-between;
     align-items: center;
     margin-bottom: 25px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 15px;
 }
 
@@ -570,6 +570,7 @@ input[style] {
     display: flex;
     gap: 12px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 /* keep header controls on same row; allow title to shrink */
@@ -591,12 +592,14 @@ input[style] {
     justify-content: space-between;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
 }
 
 .list-header .header-controls {
     display: flex;
     gap: 10px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 /* Make toolbar wrap nicely on small screens */
@@ -610,7 +613,9 @@ input[style] {
 
     .section-header .header-controls,
     .list-header .header-controls {
-        justify-content: space-between;
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
     }
 
     .header-controls .control-input,
