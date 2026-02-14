@@ -472,6 +472,52 @@ input[type="search"]:focus,
     color: var(--text-primary);
 }
 
+/* Streamline header buttons (New/Add) across pages */
+.header-controls .btn {
+    height: 40px;
+    padding: 8px 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+.header-controls .btn-primary {
+    min-width: 120px;
+}
+
+.section-header h2,
+.list-header h3,
+.section-header h4 {
+    margin: 0;
+    display: inline-block;
+}
+
+/* Make small action buttons consistent */
+.btn-sm {
+    height: 34px;
+    padding: 6px 10px;
+    border-radius: 8px;
+}
+
+/* Ensure item action toolbar in forms aligns with labels */
+.items-section .section-header {
+    align-items: center;
+}
+
+/* Align add-item button to baseline with titles when possible */
+.items-section .section-header>.btn,
+.section-header>.btn {
+    align-self: center;
+}
+
+/* Override inconsistent inline styles where present */
+button.btn[style],
+input[style] {
+    vertical-align: middle;
+}
+
 /* List header (controls + title) */
 .list-header {
     display: flex;
