@@ -244,7 +244,7 @@ body {
     border: 1px solid var(--border-color);
 }
 
-/* Desktop: position language selector absolutely */
+/* Desktop: position language selector absolutely at top-right */
 @media (min-width: 481px) {
     .auth-language-selector {
         position: absolute;
@@ -254,7 +254,9 @@ body {
     }
 }
 
-/* Mobile-specific optimizations for login page */
+/* Additional mobile-specific optimizations for login page
+   Note: Base language selector styles above are mobile-first.
+   This block contains additional mobile-only adjustments. */
 @media (max-width: 480px) {
     /* Container and card adjustments */
     .auth-container {
