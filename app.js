@@ -437,6 +437,10 @@ function viewBill(billId) {
 // Download PDF of current bill using jsPDF
 function downloadBillPDF() {
     if (!currentBill) { alert('No bill selected'); return; }
+    if (!window.jspdf) {
+        alert('jsPDF library not loaded. Please refresh the page and try again.');
+        return;
+    }
     try {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ unit: 'pt', format: 'a4' });
@@ -453,7 +457,13 @@ function downloadBillPDF() {
         doc.text(`Phone: ${currentBill.customer.phone || 'N/A'}`, 40, 128);
 
         const cols = ['S.No', 'Particulars', 'Qty', 'Unit Rate', 'Amount'];
-        const rows = currentBill.items.map((it, idx) => [idx + 1, it.name, String(it.qty), `₹${it.rate.toFixed(2)}`, `₹${it.amount.toFixed(2)}`]);
+        const rows = currentBill.items.map((it, idx) => [
+            idx + 1, 
+            it.name, 
+            String(it.qty), 
+            `₹${it.rate.toFixed(2)}`, 
+            `₹${it.amount.toFixed(2)}`
+        ]);
 
         doc.autoTable({ startY: 150, head: [cols], body: rows, styles: { fontSize: 10 } });
 
@@ -472,6 +482,10 @@ function downloadBillPDF() {
 function downloadBillsPDF(billsToExport, filename) {
     if (!billsToExport || billsToExport.length === 0) {
         alert('No bills to export');
+        return;
+    }
+    if (!window.jspdf) {
+        alert('jsPDF library not loaded. Please refresh the page and try again.');
         return;
     }
     try {
@@ -495,7 +509,13 @@ function downloadBillsPDF(billsToExport, filename) {
             doc.text(`Phone: ${bill.customer.phone || 'N/A'}`, 40, 128);
 
             const cols = ['S.No', 'Particulars', 'Qty', 'Unit Rate', 'Amount'];
-            const rows = bill.items.map((it, idx) => [idx + 1, it.name, String(it.qty), `₹${it.rate.toFixed(2)}`, `₹${it.amount.toFixed(2)}`]);
+            const rows = bill.items.map((it, idx) => [
+                idx + 1, 
+                it.name, 
+                String(it.qty), 
+                `₹${it.rate.toFixed(2)}`, 
+                `₹${it.amount.toFixed(2)}`
+            ]);
 
             doc.autoTable({ startY: 150, head: [cols], body: rows, styles: { fontSize: 10 } });
 
