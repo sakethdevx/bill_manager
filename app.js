@@ -563,8 +563,9 @@ function renderBillToPDF(doc, bill, pageWidth, pageHeight) {
 
     // Items table - modern design
     yPos += 20;
-    const cols = ['Item', 'Quantity', 'Unit Price', 'Amount'];
-    const rows = bill.items.map((it) => [
+    const cols = ['#', 'Item', 'Quantity', 'Unit Price', 'Amount'];
+    const rows = bill.items.map((it, idx) => [
+        idx + 1,
         it.name,
         String(it.qty),
         `₹${it.rate.toFixed(2)}`,
@@ -590,10 +591,11 @@ function renderBillToPDF(doc, bill, pageWidth, pageHeight) {
             cellPadding: 10
         },
         columnStyles: {
-            0: { cellWidth: 'auto' },
-            1: { halign: 'center', cellWidth: 80 },
-            2: { halign: 'right', cellWidth: 100 },
-            3: { halign: 'right', cellWidth: 100 }
+            0: { halign: 'center', cellWidth: 40 },
+            1: { cellWidth: 'auto' },
+            2: { halign: 'center', cellWidth: 80 },
+            3: { halign: 'right', cellWidth: 100 },
+            4: { halign: 'right', cellWidth: 100 }
         },
         margin: { left: margin, right: margin },
         didDrawPage: function(data) {
@@ -630,7 +632,7 @@ function renderBillToPDF(doc, bill, pageWidth, pageHeight) {
     doc.setTextColor(...PDF_COLORS.TEXT_LIGHT);
     doc.setFont(undefined, 'normal');
     doc.text('Thank you for your business', pageWidth / 2, footerY + 20, { align: 'center' });
-    doc.text('This is a computer-generated invoice and does not require a signature', pageWidth / 2, footerY + 35, { align: 'center' });
+    doc.text('For any queries or concerns, please contact us at the address mentioned above', pageWidth / 2, footerY + 35, { align: 'center' });
 }
 
 // Download PDF of current bill using jsPDF
