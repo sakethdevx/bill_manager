@@ -1500,6 +1500,21 @@ input[style] {
         padding: 15px;
     }
 
+    .stock-history h3 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+
+    /* Make stock history table scrollable on mobile */
+    #stockHistoryContainer {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #stockHistoryContainer .data-table {
+        min-width: 600px;
+    }
+
     /* Table footer for mobile */
     .table-footer {
         flex-direction: column;
@@ -1524,13 +1539,34 @@ input[style] {
         gap: 12px;
     }
 
+    /* Remove flex sizing on mobile for better stacking */
+    .export-panel .form-row .form-group {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+
+    .export-panel .form-group label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
     .columns-list {
         grid-template-columns: 1fr;
-        max-height: 200px;
+        max-height: 250px;
+    }
+
+    .export-filters {
+        gap: 12px;
+    }
+
+    .export-filters .form-group {
+        margin-bottom: 12px;
     }
 
     .export-actions {
         flex-direction: column;
+        gap: 8px;
     }
 
     .export-actions .btn {
