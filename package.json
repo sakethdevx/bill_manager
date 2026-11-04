@@ -4,7 +4,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "start": "vercel dev"
+        "start": "python3 -m http.server 8000",
+        "start:vercel": "vercel dev"
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.29.0"

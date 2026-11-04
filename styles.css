@@ -973,7 +973,7 @@ input[style] {
 
 .item-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr auto;
+    grid-template-columns: 2fr 1fr 0.8fr 1.2fr 0.8fr 1.2fr auto;
     gap: 8px;
     align-items: end;
     padding: 10px;
@@ -1850,4 +1850,17 @@ input[style] {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--primary-color);
+}
+/* GST summary lines */
+.gst-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 4px 0;
+    font-size: 0.95rem;
+}
+.bill-summary {
+    margin-top: 12px;
+    margin-left: auto;
+    max-width: 380px;
 }
