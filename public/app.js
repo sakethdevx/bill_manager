@@ -27,6 +27,7 @@ const COMPANY_INFO = {
 let bills = [];
 let inventory = [];
 let stockHistory = [];
+let purchases = [];
 let currentBillItems = [];
 let currentBill = null;
 // Export initialization flag
@@ -90,6 +91,7 @@ async function loadAllData() {
         bills = state.bills || [];
         inventory = state.inventory || [];
         stockHistory = state.stockHistory || [];
+        purchases = state.purchases || [];
 
         // Normalize existing inventory codes to short sequential format if needed
         try {
@@ -115,6 +117,7 @@ async function loadAllData() {
         updateStockItemSelect();
         loadBills();
         loadStockHistory();
+        if (window.loadPurchases) loadPurchases();
         generateNextInvoiceNumber();
         // Initialize export UI when data is loaded
         if (window.initExportSection) window.initExportSection();
@@ -127,7 +130,7 @@ async function loadAllData() {
 // Persist full state to serverless KV
 async function saveState() {
     try {
-        const payload = { bills, inventory, stockHistory };
+        const payload = { bills, inventory, stockHistory, purchases };
         localStorage.setItem('bm_demo_state', JSON.stringify(payload));
     } catch (err) {
         console.error('Error saving state:', err);
@@ -141,10 +144,12 @@ function uid(prefix = 'id') {
 
 // Navigation
 const SECTION_META = {
-    dashboard: ['Dashboard', 'Overview of sales, stock and recent activity'],
-    bills: ['Bills', 'Create, search and manage invoices'],
+    dashboard: ['Dashboard', 'Sales, purchases, GST and stock at a glance'],
+    bills: ['Bills', 'Create, search and manage sales invoices'],
+    purchases: ['Purchases', 'Supplier bills, GST paid and the monthly purchase statement'],
     inventory: ['Inventory', 'Items, prices, GST and stock levels'],
     stock: ['Stock Management', 'Adjust stock and review the history'],
+    reports: ['Reports', 'GST return working data and an income-tax pack for your CA'],
     export: ['Export', 'Download your data as CSV, Excel, JSON or PDF']
 };
 function showSection(sectionName) {
@@ -350,7 +355,8 @@ document.getElementById('billForm').addEventListener('submit', function (e) {
         customer: {
             name: document.getElementById('customerName').value.trim(),
             phone: document.getElementById('customerPhone').value.trim(),
-            address: document.getElementById('customerAddress').value.trim()
+            address: document.getElementById('customerAddress').value.trim(),
+            gstin: document.getElementById('customerGstin').value.toUpperCase().replace(/\s/g, '')
         },
         paymentMode: document.getElementById('paymentMode') ? document.getElementById('paymentMode').value : 'Cash',
         status: document.getElementById('paymentStatus') ? document.getElementById('paymentStatus').value : 'Unpaid',
@@ -431,6 +437,10 @@ function viewBill(billId) {
                 <h4>Address</h4>
                 <p>${escHtml(bill.customer.address || 'N/A')}</p>
             </div>
+            ${bill.customer.gstin ? `<div class="info-group">
+                <h4>Customer GSTIN</h4>
+                <p>${escHtml(bill.customer.gstin)}</p>
+            </div>` : ''}
             <div class="info-group">
                 <h4>Payment Mode</h4>
                 <p>${bill.paymentMode || 'N/A'}</p>
@@ -555,6 +565,7 @@ function renderBillToPDF(doc, bill, pageWidth, pageHeight) {
     
     const phoneY = yPos + 55 + (addressLines.length * 11);
     doc.text(`Phone: ${bill.customer.phone || 'N/A'}`, margin + 15, phoneY);
+    if (bill.customer.gstin) doc.text(`GSTIN: ${bill.customer.gstin}`, margin + 15, phoneY + 12);
 
     // Payment & Shipping details - modern grid
     yPos = 240;
@@ -866,6 +877,7 @@ document.getElementById('inventoryForm').addEventListener('submit', function (e)
         gstRate,
         priceExGst,
         priceInclGst,
+        costPrice: (v => isNaN(v) ? null : v)(parseFloat(document.getElementById('itemCost').value)),
         rate: priceExGst, // kept for backward compatibility (= price without GST)
         stock: parseInt(document.getElementById('itemStock').value) || 0,
         description: document.getElementById('itemDescription').value
@@ -904,6 +916,7 @@ function editInventoryItem(itemId) {
     document.getElementById('itemRate').value = item.priceExGst != null ? item.priceExGst : item.rate;
     lastPriceEdited = 'ex';
     syncInventoryPrices();
+    document.getElementById('itemCost').value = item.costPrice != null ? item.costPrice : '';
     document.getElementById('itemStock').value = item.stock || 0;
     document.getElementById('itemDescription').value = item.description || '';
 
@@ -1167,9 +1180,26 @@ function buildColumnList(dataset) {
             { key: 'gstRate', label: 'GST Rate (%)' },
             { key: 'priceExGst', label: 'Price w/o GST' },
             { key: 'priceInclGst', label: 'Price with GST' },
+            { key: 'costPrice', label: 'Cost price (last purchase, w/o GST)' },
             { key: 'stock', label: 'Stock' },
             { key: 'description', label: 'Description' },
             { key: 'id', label: 'Internal ID' }
+        ];
+    } else if (dataset === 'purchases') {
+        return [
+            { key: 'purchaseNo', label: 'Purchase ID' },
+            { key: 'date', label: 'Invoice Date' },
+            { key: 'invoiceNo', label: 'Invoice No.' },
+            { key: 'supplier.name', label: 'Seller Name' },
+            { key: 'supplier.gstin', label: 'Seller GSTIN' },
+            { key: 'taxable', label: 'Net Value (before tax)' },
+            { key: 'gstByRate.5', label: 'GST 5%' },
+            { key: 'gstByRate.12', label: 'GST 12%' },
+            { key: 'gstByRate.18', label: 'GST 18%' },
+            { key: 'gstByRate.28', label: 'GST 28%' },
+            { key: 'totalTax', label: 'Total GST' },
+            { key: 'otherCharges', label: 'Other charges / round-off' },
+            { key: 'grandTotal', label: 'Total (after tax)' }
         ];
     } else if (dataset === 'stockHistory') {
         return [
@@ -1210,6 +1240,15 @@ function renderExportFilters(dataset) {
             <select id="filter_status"><option value="">Any</option><option>Paid</option><option>Unpaid</option><option>Pending</option></select>
             <label>Search</label>
             <input type="text" id="filter_search" placeholder="Invoice / Customer / Item">
+        `;
+    } else if (dataset === 'purchases') {
+        container.innerHTML = `
+            <label>Invoice Date From</label>
+            <input type="date" id="filter_date_from">
+            <label>Invoice Date To</label>
+            <input type="date" id="filter_date_to">
+            <label>Search</label>
+            <input type="text" id="filter_search" placeholder="Supplier / Invoice / GSTIN">
         `;
     } else if (dataset === 'inventory') {
         container.innerHTML = `
@@ -1252,6 +1291,15 @@ function getFilteredData(dataset) {
         const search = document.getElementById('filter_search') ? (document.getElementById('filter_search').value || '').toLowerCase() : '';
         if (search) data = data.filter(i => (i.name && i.name.toLowerCase().includes(search)) || (i.code && i.code.toLowerCase().includes(search)) || (i.partNumber && i.partNumber.toLowerCase().includes(search)));
         return data;
+    } else if (dataset === 'purchases') {
+        let data = purchases.slice();
+        const from = document.getElementById('filter_date_from') ? document.getElementById('filter_date_from').value : '';
+        const to = document.getElementById('filter_date_to') ? document.getElementById('filter_date_to').value : '';
+        const search = document.getElementById('filter_search') ? (document.getElementById('filter_search').value || '').toLowerCase() : '';
+        if (from) data = data.filter(d => d.date >= from);
+        if (to) data = data.filter(d => d.date <= to);
+        if (search) data = data.filter(d => [d.purchaseNo, d.invoiceNo, d.supplier && d.supplier.name, d.supplier && d.supplier.gstin].join(' ').toLowerCase().includes(search));
+        return data.sort((x, y) => (x.date || '').localeCompare(y.date || ''));
     } else if (dataset === 'stockHistory') {
         let data = stockHistory.slice();
         const from = document.getElementById('filter_date_from') ? document.getElementById('filter_date_from').value : '';

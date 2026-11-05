@@ -161,6 +161,7 @@
     // ------------------------------------------------------------------
     // Domain helpers
     // ------------------------------------------------------------------
+    const inInc = (v) => inr(v);
     const todayStr = () => new Date().toISOString().slice(0, 10);
     const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
     const iso = (d) => { const x = new Date(d); return new Date(x.getTime() - x.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
@@ -208,7 +209,7 @@
             if (to && (b.date || '') > to) return false;
             if (!toks.length) return true;
             const c = b.customer || {};
-            const hay = [b.invoiceNo, b.date, c.name, c.phone, c.address, b.paymentMode, b.status, b.total].concat((b.items || []).map(i => `${i.name} ${i.hsn || ''}`)).join(' ');
+            const hay = [b.invoiceNo, b.date, c.name, c.phone, c.address, c.gstin, b.paymentMode, b.status, b.total].concat((b.items || []).map(i => `${i.name} ${i.hsn || ''}`)).join(' ');
             return matchAll(hay, toks);
         },
         row: (b, toks) => {
@@ -259,14 +260,14 @@
 
     tables.inventory = makeTable({
         name: 'inventory', container: 'inventoryTableContainer', tbody: 'inventoryTableBody', info: 'invPaginationInfo', pager: 'invPager',
-        perPage: 'invPerPage', searchInput: 'invSearch', clear: 'invClear', exportBtn: 'invExportView', cols: 9, per: 25,
+        perPage: 'invPerPage', searchInput: 'invSearch', clear: 'invClear', exportBtn: 'invExportView', cols: 10, per: 25,
         sortKey: 'name', sortDir: 'asc',
         source: () => inventory,
         emptyTitle: 'Inventory is empty', emptyText: 'Add your first item to start tracking stock.',
         emptyAction: '<button class="btn btn-primary" onclick="showNewInventoryForm()">Add an item</button>',
         filterEls: [['invStockFilter', 'stock'], ['invGstFilter', 'gst']],
         resetUI: () => ['invSearch', 'invStockFilter', 'invGstFilter'].forEach(id => { const e = $(id); if (e) e.value = ''; }),
-        sortValue: (i, k) => k === 'priceExGst' ? (i.priceExGst != null ? i.priceExGst : i.rate) : k === 'priceInclGst' ? (i.priceInclGst != null ? i.priceInclGst : i.rate) : k === 'stock' ? (Number(i.stock) || 0) : k === 'gstRate' ? (Number(i.gstRate) || 0) : getValueByPath(i, k),
+        sortValue: (i, k) => k === 'priceExGst' ? (i.priceExGst != null ? i.priceExGst : i.rate) : k === 'priceInclGst' ? (i.priceInclGst != null ? i.priceInclGst : i.rate) : k === 'costPrice' ? (i.costPrice != null ? Number(i.costPrice) : null) : k === 'stock' ? (Number(i.stock) || 0) : k === 'gstRate' ? (Number(i.gstRate) || 0) : getValueByPath(i, k),
         filter: (i, f, toks) => {
             if (f.stock) { const l = stockLevel(i); if (f.stock === 'attention' ? l === 'in' : l !== f.stock) return false; }
             if (f.gst !== '' && f.gst != null && String(Number(i.gstRate) || 0) !== f.gst) return false;
@@ -285,7 +286,8 @@
                 <td>${hl(i.hsn || '—', toks)}</td>
                 <td class="num">${fmtRate(i.gstRate)}</td>
                 <td class="num">${inr(ex)}</td>
-                <td class="num">${inr(inc)}</td>
+                <td class="num">${inInc(inc)}</td>
+                <td class="num">${i.costPrice != null ? inr(i.costPrice) : '<span class="muted">—</span>'}</td>
                 <td class="num"><span class="stock-num">${Number(i.stock) || 0}</span>${badge}</td>
                 <td class="actions-col"><div class="table-actions">
                     <button class="icon-btn" title="Adjust stock" aria-label="Adjust stock" onclick="goAdjustStock('${i.id}')">${icon('stock')}</button>
@@ -311,6 +313,7 @@
             { label: 'HSN', get: i => i.hsn }, { label: 'GST %', get: i => i.gstRate },
             { label: 'Price w/o GST', get: i => i.priceExGst != null ? i.priceExGst : i.rate },
             { label: 'Price with GST', get: i => i.priceInclGst != null ? i.priceInclGst : i.rate },
+            { label: 'Last cost (w/o GST)', get: i => i.costPrice },
             { label: 'Stock', get: i => i.stock || 0 }, { label: 'Description', get: i => i.description }
         ]
     });
@@ -393,7 +396,8 @@
     // Dashboard + sidebar counters
     // ------------------------------------------------------------------
     function refreshChrome() {
-        const nb = $('navBillsCount'), ni = $('navInvCount'), nl = $('navLowCount');
+        const nb = $('navBillsCount'), ni = $('navInvCount'), nl = $('navLowCount'), np = $('navPurchCount');
+        if (np) np.textContent = (typeof purchases !== 'undefined' && purchases.length) || '';
         if (nb) nb.textContent = bills.length || '';
         if (ni) ni.textContent = inventory.length || '';
         const attention = inventory.filter(i => stockLevel(i) !== 'in').length;
@@ -401,84 +405,8 @@
         renderDashboard();
     }
 
-    function renderDashboard() {
-        if (!$('kpiGrid')) return;
-        const today = todayStr();
-        const monthStart = today.slice(0, 8) + '01';
-        const prevMonthStart = iso(new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1));
-        const prevMonthEnd = iso(new Date(new Date().getFullYear(), new Date().getMonth(), 0));
-        const sumBy = (fn) => bills.filter(fn).reduce((s, b) => s + billTotal(b), 0);
-        const todaySales = sumBy(b => b.date === today);
-        const monthSales = sumBy(b => b.date >= monthStart && b.date <= today);
-        const prevSales = sumBy(b => b.date >= prevMonthStart && b.date <= prevMonthEnd);
-        const unpaidBills = bills.filter(b => String(b.status).toLowerCase() !== 'paid');
-        const unpaid = unpaidBills.reduce((s, b) => s + billTotal(b), 0);
-        const monthBills = bills.filter(b => b.date >= monthStart && b.date <= today).length;
-        const out = inventory.filter(i => stockLevel(i) === 'out').length;
-        const low = inventory.filter(i => stockLevel(i) === 'low').length;
-        const stockValue = inventory.reduce((s, i) => s + (Number(i.stock) || 0) * (Number(i.priceExGst != null ? i.priceExGst : i.rate) || 0), 0);
+    function renderDashboard() { if (window.Dashboard) Dashboard.render(); }
 
-        let delta = '';
-        if (prevSales > 0) {
-            const p = ((monthSales - prevSales) / prevSales) * 100;
-            delta = `<span class="${p >= 0 ? 'delta-up' : 'delta-down'}">${p >= 0 ? '▲' : '▼'} ${Math.abs(p).toFixed(0)}%</span> vs last month`;
-        } else delta = `${monthBills} bill${monthBills === 1 ? '' : 's'} this month`;
-
-        const kpi = (cls, ic, label, value, sub, action) => `<button class="kpi ${cls}" onclick="${action}">
-            <div class="kpi-label"><span class="kpi-icon">${icon(ic)}</span>${label}</div>
-            <div class="kpi-value">${value}</div><div class="kpi-sub">${sub}</div></button>`;
-        $('kpiGrid').innerHTML =
-            kpi('', 'rupee', "Today's sales", inrShort(todaySales), `${bills.filter(b => b.date === today).length} bill(s) today`, "showSection('bills');setBillsRange('today')") +
-            kpi('t-success', 'bills', 'This month', inrShort(monthSales), delta, "showSection('bills');setBillsRange('month')") +
-            kpi('t-warning', 'alert', 'Outstanding', inrShort(unpaid), `${unpaidBills.length} unpaid / pending bill(s)`, "showSection('bills');setBillsStatus('Unpaid')") +
-            kpi(out || low ? 't-danger' : '', 'box', 'Stock alerts', `${out + low}`, `${out} out · ${low} low · stock worth ${inrShort(stockValue)}`, "showSection('inventory');setInvStockFilter('attention')");
-
-        // 14 day sales chart
-        const days = [];
-        for (let i = 13; i >= 0; i--) days.push(iso(addDays(new Date(), -i)));
-        const byDay = Object.fromEntries(days.map(d => [d, 0]));
-        bills.forEach(b => { if (b.date in byDay) byDay[b.date] += billTotal(b); });
-        const vals = days.map(d => byDay[d]);
-        const max = Math.max(...vals, 1);
-        const W = Math.max(320, $('salesChart').clientWidth || 760), H = W < 520 ? 180 : 220, pl = 46, pb = 26, pt = 12, bw = (W - pl - 8) / days.length;
-        const nice = (m) => { const p = Math.pow(10, Math.floor(Math.log10(m))); const f = m / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; };
-        const top = nice(max);
-        let svg = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Sales for the last 14 days">`;
-        [0, .5, 1].forEach(f => { const y = pt + (H - pt - pb) * (1 - f); svg += `<line class="grid" x1="${pl}" x2="${W - 8}" y1="${y}" y2="${y}"/><text x="${pl - 8}" y="${y + 4}" text-anchor="end">${f ? inrShort(top * f).replace(/\.00$/, '') : '0'}</text>`; });
-        days.forEach((d, i) => {
-            const h = (H - pt - pb) * (vals[i] / top);
-            const x = pl + i * bw + bw * .2;
-            const dt = new Date(d + 'T00:00:00');
-            svg += `<rect class="bar ${d === today ? 'today' : ''}" x="${x}" y="${H - pb - Math.max(h, vals[i] ? 2 : 0)}" width="${bw * .6}" height="${Math.max(h, vals[i] ? 2 : 0)}" rx="4"><title>${dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}: ${inr(vals[i])}</title></rect>`;
-            if (W > 520 ? i % 2 === 1 : i % 4 === 1) svg += `<text x="${x + bw * .3}" y="${H - 8}" text-anchor="middle">${dt.getDate()} ${dt.toLocaleDateString('en-IN', { month: 'short' })}</text>`;
-        });
-        $('salesChart').innerHTML = svg + '</svg>';
-        $('salesRangeTotal').textContent = 'Total ' + inr(vals.reduce((a, b) => a + b, 0));
-
-        // Recent bills
-        const recent = bills.slice().sort((a, b) => ((b.timestamp || b.date) > (a.timestamp || a.date) ? 1 : -1)).slice(0, 6);
-        $('recentBills').innerHTML = recent.length ? recent.map(b => `<div class="mini-row" onclick="viewBill('${b.id}')">
-            <div class="mini-main"><strong>${escHtml((b.customer && b.customer.name) || 'Walk-in')} <span class="mono muted">#${escHtml(b.invoiceNo)}</span></strong><small>${escHtml(formatDate(b.date))} · ${(b.items || []).length} item(s)</small></div>
-            ${statusBadge(b.status)}<span class="mini-val">${inr(billTotal(b))}</span></div>`).join('')
-            : `<div class="mini-empty">No bills yet.<br><button class="link-btn" onclick="showNewBillForm()">Create your first bill</button></div>`;
-
-        // Low stock
-        const alerts = inventory.filter(i => stockLevel(i) !== 'in').sort((a, b) => (a.stock || 0) - (b.stock || 0)).slice(0, 6);
-        $('lowStockList').innerHTML = alerts.length ? alerts.map(i => `<div class="mini-row" onclick="goAdjustStock('${i.id}')">
-            <div class="mini-main"><strong>${escHtml(i.name)}</strong><small class="mono">${escHtml(i.code)}${i.partNumber ? ' · ' + escHtml(i.partNumber) : ''}</small></div>
-            <span class="badge badge-${stockLevel(i) === 'out' ? 'danger' : 'warning'}">${stockLevel(i) === 'out' ? 'Out' : 'Low'}</span><span class="mini-val">${i.stock || 0}</span></div>`).join('')
-            : `<div class="mini-empty">${inventory.length ? 'All items are well stocked 🎉' : 'No inventory yet.'}</div>`;
-
-        // Top items
-        const qty = {};
-        bills.forEach(b => (b.items || []).forEach(it => { const k = it.name; if (!k) return; qty[k] = qty[k] || { q: 0, amt: 0 }; qty[k].q += Number(it.qty) || 0; qty[k].amt += Number(it.amount) || 0; }));
-        const top5 = Object.entries(qty).sort((a, b) => b[1].q - a[1].q).slice(0, 5);
-        $('topItems').innerHTML = top5.length ? top5.map(([n, v], i) => `<div class="mini-row" onclick="openPalette('${escHtml(n).replace(/'/g, '&#39;')}')">
-            <span class="rank">${i + 1}</span><div class="mini-main"><strong>${escHtml(n)}</strong><small>${inr(v.amt)} before GST</small></div><span class="mini-val">${v.q} sold</span></div>`).join('')
-            : '<div class="mini-empty">Sales will show up here.</div>';
-    }
-
-    let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (activeSection() === 'dashboard') renderDashboard(); }, 150); });
     window.setBillsRange = (v) => { const s = $('billsRange'); s.value = v; s.dispatchEvent(new Event('change')); };
     window.setBillsStatus = (v) => { const s = $('billsStatusFilter'); s.value = v; s.dispatchEvent(new Event('change')); };
 
@@ -550,7 +478,7 @@
         name.addEventListener('focus', refresh);
         name.addEventListener('input', () => {
             const c = name._known && name._known.get(name.value.trim().toLowerCase());
-            if (c) { if (!$('customerPhone').value) $('customerPhone').value = c.phone || ''; if (!$('customerAddress').value) $('customerAddress').value = c.address || ''; }
+            if (c) { if (!$('customerPhone').value) $('customerPhone').value = c.phone || ''; if (!$('customerAddress').value) $('customerAddress').value = c.address || ''; if (!$('customerGstin').value) $('customerGstin').value = c.gstin || ''; }
         });
     }
 
@@ -594,6 +522,11 @@
         const toks = tokens($('paletteInput').value);
         const cmds = [
             { g: 'Actions', ic: 'plus', t: 'Create new bill', s: 'N', run: () => showNewBillForm() },
+            { g: 'Actions', ic: 'camera', t: 'Scan a purchase bill (add stock from a photo)', run: () => { showSection('purchases'); openPurchase('scan'); } },
+            { g: 'Actions', ic: 'purchase', t: 'New purchase (enter manually)', run: () => { showSection('purchases'); openPurchase('manual'); } },
+            { g: 'Actions', ic: 'export', t: 'Purchase statement (month-end export)', run: () => { showSection('purchases'); openStatement(); } },
+            { g: 'Go to', ic: 'purchase', t: 'Purchases', run: () => showSection('purchases') },
+            { g: 'Go to', ic: 'report', t: 'Reports (GSTR-1, GSTR-3B, annual GST, income-tax pack)', run: () => showSection('reports') },
             { g: 'Actions', ic: 'plus', t: 'Add inventory item', s: '', run: () => { showSection('inventory'); showNewInventoryForm(); } },
             { g: 'Go to', ic: 'dashboard', t: 'Dashboard', run: () => showSection('dashboard') },
             { g: 'Go to', ic: 'bills', t: 'Bills', run: () => showSection('bills') },
@@ -608,7 +541,9 @@
                 .map(b => ({ g: 'Bills', ic: 'bills', t: `#${b.invoiceNo} · ${(b.customer && b.customer.name) || 'Walk-in'}`, sub: `${formatDate(b.date)} · ${inr(billTotal(b))} · ${b.status || ''}`, run: () => { showSection('bills'); viewBill(b.id); } }));
             const is = inventory.filter(i => matchAll([i.code, i.name, i.partNumber, i.hsn].join(' '), toks)).slice(0, 6)
                 .map(i => ({ g: 'Inventory', ic: 'box', t: i.name, sub: `${i.code}${i.partNumber ? ' · ' + i.partNumber : ''} · stock ${i.stock || 0} · ${inr(i.priceExGst != null ? i.priceExGst : i.rate)}`, run: () => { showSection('inventory'); const s = $('invSearch'); s.value = i.code; tables.inventory.st.search = i.code; tables.inventory.render(); } }));
-            list = [...bs, ...is, ...cmds];
+            const ps = (typeof purchases === 'undefined' ? [] : purchases).filter(p => matchAll([p.purchaseNo, p.invoiceNo, (p.supplier || {}).name, (p.supplier || {}).gstin, p.grandTotal].concat((p.lines || []).map(l => l.name)).join(' '), toks)).slice(0, 6)
+                .map(p => ({ g: 'Purchases', ic: 'purchase', t: `${p.purchaseNo} · ${(p.supplier && p.supplier.name) || 'Seller'}`, sub: `Invoice ${p.invoiceNo || '—'} · ${formatDate(p.date)} · ${inr(p.grandTotal)}`, run: () => { showSection('purchases'); viewPurchase(p.id); } }));
+            list = [...ps, ...bs, ...is, ...cmds];
         }
         palItems = list;
         if (palSel >= list.length) palSel = Math.max(0, list.length - 1);
@@ -650,7 +585,7 @@
     function activeSection() { const s = document.querySelector('.section.active'); return s ? s.id.replace('-section', '') : ''; }
     function anyOverlayOpen() {
         return !$('palette').hidden || $('confirmDialog').style.display === 'block' ||
-            $('new-bill-form').style.display === 'block' || $('new-inventory-form').style.display === 'block' || $('billViewModal').classList.contains('active');
+            $('new-bill-form').style.display === 'block' || $('new-inventory-form').style.display === 'block' || $('purchase-drawer').style.display === 'block' || $('purchaseViewModal').classList.contains('active') || $('statementModal').classList.contains('active') || $('billViewModal').classList.contains('active');
     }
 
     function initUI() {
@@ -687,6 +622,9 @@
             if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('palette').hidden ? openPalette() : closePalette(); return; }
             if (e.key === 'Escape') {
                 if (!$('palette').hidden) return closePalette();
+                if ($('statementModal').classList.contains('active')) return closeStatement();
+                if ($('purchaseViewModal').classList.contains('active')) return closePurchaseView();
+                if ($('purchase-drawer').style.display === 'block') return closePurchase();
                 if ($('new-bill-form').style.display === 'block') return hideNewBillForm();
                 if ($('new-inventory-form').style.display === 'block') return hideNewInventoryForm();
                 if ($('billViewModal').classList.contains('active')) return closeBillModal();
@@ -695,11 +633,11 @@
             if (typing || anyOverlayOpen() || e.ctrlKey || e.metaKey || e.altKey) return;
             if ($('app-container').style.display === 'none') return;
             if (e.key === '/') {
-                const map = { bills: 'billsSearch', inventory: 'invSearch', stock: 'histSearch' };
+                const map = { bills: 'billsSearch', purchases: 'purSearch', inventory: 'invSearch', stock: 'histSearch' };
                 const el = $(map[activeSection()]);
                 if (el) { e.preventDefault(); el.focus(); el.select(); } else { e.preventDefault(); openPalette(); }
-            } else if (e.key.toLowerCase() === 'n') { e.preventDefault(); activeSection() === 'inventory' ? showNewInventoryForm() : showNewBillForm(); }
-            else if ('12345'.includes(e.key) && e.key) { showSection(['dashboard', 'bills', 'inventory', 'stock', 'export'][+e.key - 1]); }
+            } else if (e.key.toLowerCase() === 'n') { e.preventDefault(); ({ inventory: showNewInventoryForm, purchases: () => openPurchase('manual') }[activeSection()] || showNewBillForm)(); }
+            else if ('1234567'.includes(e.key) && e.key) { showSection(['dashboard', 'bills', 'purchases', 'inventory', 'stock', 'reports', 'export'][+e.key - 1]); }
         });
 
         // Restore last section
@@ -711,8 +649,11 @@
     window.onSectionShown = function (name) {
         if (name === 'dashboard') renderDashboard();
         if (name === 'bills') tables.bills.render();
+        if (name === 'purchases' && tables.purchases) { tables.purchases.render(); if (window.refreshPurchaseFilters) refreshPurchaseFilters(); }
         if (name === 'inventory') tables.inventory.render();
         if (name === 'stock') tables.stock.render();
+        if (name === 'reports' && window.renderReports) renderReports();
     };
+    window.UIKit = { makeTable, tables, inr, icon, hl, tokens, matchAll, dateRange, todayStr, iso, addDays, deb, refreshChrome };
     paintThemeIcon();
 })();
