@@ -445,10 +445,6 @@ function viewBill(billId) {
                 <h4>Status</h4>
                 <p>${bill.status || 'N/A'}</p>
             </div>
-            <div class="info-group">
-                <h4>Status</h4>
-                <p>${bill.status || 'N/A'}</p>
-            </div>
         </div>
         
         <div class="bill-items">

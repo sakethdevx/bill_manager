@@ -649,7 +649,6 @@ label.btn { cursor: pointer; }
     .sc-gst { grid-column: span 2; }
     .sc-net { grid-column: span 2; }
 }
-}
 @media (max-width: 640px) {
     .sc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .sc-name { grid-column: 1 / -1; }
@@ -863,3 +862,163 @@ label.btn { cursor: pointer; }
 .theme-menu button.on { color: var(--primary, #4f46e5); }
 .theme-menu button span { flex: 1; }
 .theme-menu .ic { width: 16px; height: 16px; }
+
+/* ==========================================================================
+   Phone / touch pass
+   ========================================================================== */
+.mobile-sort { display: none; }
+
+/* ---- comfortable touch targets, no iOS zoom-on-focus ---- */
+@media (pointer: coarse), (max-width: 720px) {
+    .btn { min-height: 44px; }
+    .btn-sm { height: auto; min-height: 40px; padding: 0 14px; }
+    .icon-btn { min-width: 44px; min-height: 44px; }
+    .table-actions { gap: 6px; }
+    .table-actions .icon-btn { width: 44px; height: 44px; }
+    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select, textarea, .ss-trigger { min-height: 46px; font-size: 16px; }
+    .ss-search { font-size: 16px; min-height: 44px; }
+    .chip { min-height: 36px; padding: 4px 14px; font-size: 13.5px; }
+    .pager button { min-width: 42px; height: 42px; }
+    .link-btn { padding: 12px 6px; }
+    .remove-item-btn { width: 44px; height: 44px; }
+    .item-row { padding-top: 48px; }
+    .item-row .remove-item-btn { top: 2px; right: 4px; }
+    .ss-opt { min-height: 46px; padding-top: 10px; padding-bottom: 10px; }
+    .sg-item { padding: 12px 12px; }
+    .sync-pill { min-height: 42px; }
+    .nav-btn { min-height: 48px; }
+    .sidebar-tools .icon-btn, .sidebar-tools .ss-trigger { min-height: 44px; }
+    .seg button, .rep-tabs button { min-height: 44px; height: auto; }
+}
+
+@media (max-width: 720px) {
+    .content { padding: 12px 12px 32px; }
+    .card.table-card { border-radius: 14px; }
+    .toolbar { gap: 8px; }
+    .toolbar .control-input, .toolbar .ss-trigger.control-input { flex: 1 1 calc(50% - 8px); min-width: 0; }
+    .toolbar .btn { flex: 1 1 auto; }
+    .summary-chips { padding: 10px 12px; gap: 6px; }
+    .table-footer { padding: 12px; }
+
+    /* ---- the four list tables become cards (no sideways scrolling) ---- */
+    .mobile-sort { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+    .mobile-sort label { font-size: 12.5px; color: var(--text-3); font-weight: 600; white-space: nowrap; }
+    .mobile-sort select { flex: 1; min-width: 0; }
+    .mobile-sort .btn { white-space: nowrap; }
+
+    #billsTableContainer, #purchasesTableContainer, #inventoryTableContainer, #stockHistoryContainer { overflow: visible; max-height: none; padding: 10px 12px 2px; }
+    #billsTableContainer .data-table, #purchasesTableContainer .data-table, #inventoryTableContainer .data-table, #stockHistoryContainer .data-table,
+    #billsTableContainer tbody, #purchasesTableContainer tbody, #inventoryTableContainer tbody, #stockHistoryContainer tbody { display: block; width: 100%; }
+    #billsTableContainer thead, #purchasesTableContainer thead, #inventoryTableContainer thead, #stockHistoryContainer thead { display: none; }
+
+    tr.rc { display: grid; gap: 6px 12px; align-items: start; margin: 0 0 10px; padding: 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, .06)); }
+    tr.rc:active { background: var(--surface-2); }
+    tr.rc > td { display: block; min-width: 0; padding: 0; border: 0; text-align: left; overflow-wrap: anywhere; }
+    tr.rc > td.num { text-align: left; }
+    tr.rc > td::before { content: attr(data-label); display: block; margin-bottom: 1px; font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); }
+    tr.rc > td.actions-col { grid-area: act; width: auto; padding-top: 8px; margin-top: 2px; border-top: 1px solid var(--border); text-align: right !important; }
+    tr.rc > td.actions-col::before { display: none; }
+    tr.rc .table-actions { justify-content: flex-end; }
+
+    /* bills: invoice + total / customer / items / date · payment · status */
+    #billsTableBody tr.rc { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "inv inv total" "cust cust cust" "items items items" "date pay status" "act act act"; }
+    #billsTableBody td::before { display: none; }
+    #billsTableBody td:nth-child(1) { grid-area: inv; font-size: 15px; }
+    #billsTableBody td:nth-child(2) { grid-area: date; color: var(--text-3); font-size: 12.5px; align-self: center; }
+    #billsTableBody td:nth-child(3) { grid-area: cust; font-size: 15px; }
+    #billsTableBody td:nth-child(4) { grid-area: items; color: var(--text-2); font-size: 13px; }
+    #billsTableBody td:nth-child(5) { grid-area: pay; color: var(--text-3); font-size: 12.5px; align-self: center; }
+    #billsTableBody td:nth-child(6) { grid-area: status; justify-self: end; }
+    #billsTableBody td:nth-child(7) { grid-area: total; justify-self: end; font-size: 17px; text-align: right; }
+
+    /* purchases: seller + total / id · date · invoice / items · net · gst */
+    #purchasesTableBody tr.rc { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "seller seller total" "pno date inv" "items net gst" "act act act"; }
+    #purchasesTableBody td:nth-child(1) { grid-area: pno; }
+    #purchasesTableBody td:nth-child(2) { grid-area: date; }
+    #purchasesTableBody td:nth-child(3) { grid-area: inv; }
+    #purchasesTableBody td:nth-child(4) { grid-area: seller; font-size: 15px; }
+    #purchasesTableBody td:nth-child(4)::before, #purchasesTableBody td:nth-child(8)::before { display: none; }
+    #purchasesTableBody td:nth-child(5) { grid-area: items; }
+    #purchasesTableBody td:nth-child(6) { grid-area: net; }
+    #purchasesTableBody td:nth-child(7) { grid-area: gst; }
+    #purchasesTableBody td:nth-child(8) { grid-area: total; justify-self: end; font-size: 17px; text-align: right; }
+
+    /* inventory: name + stock / code · part / prices / hsn · cost */
+    #inventoryTableBody tr.rc { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "name name stock" "code part part" "ex incl gst" "hsn cost cost" "act act act"; }
+    #inventoryTableBody td:nth-child(1) { grid-area: code; }
+    #inventoryTableBody td:nth-child(2) { grid-area: name; font-size: 15px; }
+    #inventoryTableBody td:nth-child(2)::before, #inventoryTableBody td:nth-child(9)::before { display: none; }
+    #inventoryTableBody td:nth-child(3) { grid-area: part; }
+    #inventoryTableBody td:nth-child(4) { grid-area: hsn; }
+    #inventoryTableBody td:nth-child(5) { grid-area: gst; }
+    #inventoryTableBody td:nth-child(6) { grid-area: ex; }
+    #inventoryTableBody td:nth-child(7) { grid-area: incl; }
+    #inventoryTableBody td:nth-child(8) { grid-area: cost; }
+    #inventoryTableBody td:nth-child(9) { grid-area: stock; justify-self: end; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    #inventoryTableBody .stock-num { font-size: 18px; font-weight: 700; }
+
+    /* stock history: item + action / time / qty · after / reason */
+    #stockHistoryBody tr.rc { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "item item action" "time time time" "qty after after" "reason reason reason"; }
+    #stockHistoryBody td:nth-child(1) { grid-area: time; color: var(--text-3); font-size: 12.5px; }
+    #stockHistoryBody td:nth-child(2) { grid-area: item; font-size: 15px; }
+    #stockHistoryBody td:nth-child(3) { grid-area: action; justify-self: end; }
+    #stockHistoryBody td:nth-child(4) { grid-area: qty; }
+    #stockHistoryBody td:nth-child(5) { grid-area: after; }
+    #stockHistoryBody td:nth-child(6) { grid-area: reason; color: var(--text-2); font-size: 13px; }
+    #stockHistoryBody td:nth-child(1)::before, #stockHistoryBody td:nth-child(2)::before, #stockHistoryBody td:nth-child(3)::before, #stockHistoryBody td:nth-child(6)::before { display: none; }
+
+    #billsTableBody td.empty-state, #purchasesTableBody td.empty-state, #inventoryTableBody td.empty-state, #stockHistoryBody td.empty-state { grid-column: 1 / -1; padding: 36px 12px !important; text-align: center; }
+    #billsTableBody tr:not(.rc), #purchasesTableBody tr:not(.rc), #inventoryTableBody tr:not(.rc), #stockHistoryBody tr:not(.rc) { display: block; }
+
+    /* ---- drawers & modals: full height, compact footer ---- */
+    .drawer-panel, .drawer-panel.drawer-wide { width: 100%; height: 100dvh; }
+    .drawer-head { padding-top: 14px; padding-bottom: 12px; }
+    .drawer-body { padding-top: 14px; padding-bottom: 14px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+    .drawer-foot { padding-top: 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+    .total-section { grid-template-columns: 1fr; margin-bottom: 8px; }
+    .total-section #billGstBreakup, .total-section > .gst-line:nth-child(3), .total-section > .gst-line:nth-child(4) { display: none; }
+    .total-section .grand { margin-top: 2px; }
+    .total-section .grand strong { font-size: 1.35rem; }
+    .form-actions { gap: 8px; }
+    .form-actions .btn { flex: 1 1 0; }
+    .form-actions .btn:first-child:not(:only-child) { flex: 0 0 34%; }
+    .form-actions kbd, .btn kbd { display: none; }
+    .modal { padding: 0; }
+    .modal-content { min-height: 100dvh; border-radius: 0; border: 0; }
+    .modal-content.modal-sm { min-height: 0; margin-top: 12vh; border-radius: 16px; width: calc(100% - 24px); overflow: hidden; }
+    .pview .bill-items::before, .bill-view .bill-items::before { content: "Swipe sideways to see all columns →"; display: block; margin: 0 4px 6px; font-size: 11.5px; color: var(--text-3); }
+    .modal-header { position: sticky; top: 0; z-index: 2; background: var(--surface); padding: 14px 16px; }
+    .modal-body { padding: 14px 16px; }
+    .modal-actions { padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+    .bill-items { margin: 16px -4px; }
+    .bill-items table { font-size: 12.5px; }
+    .bill-items th, .bill-items td { padding: 8px 8px; }
+    .info-grid, .bill-info { grid-template-columns: 1fr 1fr; }
+
+    /* ---- dropdown lists open as a sheet near the top so the keyboard never covers them ---- */
+    .ss-pop { position: fixed !important; left: 10px !important; right: 10px !important; top: max(64px, env(safe-area-inset-top, 0px)) !important; bottom: auto !important; width: auto !important; min-width: 0 !important; max-width: none !important; border-radius: 16px; box-shadow: 0 0 0 100vmax rgba(2, 6, 23, .45), var(--shadow-lg); }
+    .ss-list { max-height: min(52dvh, 420px) !important; }
+    .suggest { max-height: 40dvh; }
+
+    .toasts { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+    .sync-pop { left: 8px !important; right: 8px !important; width: auto; }
+    .theme-menu { min-width: 200px; }
+    .palette { padding: 8px; padding-top: max(8px, env(safe-area-inset-top, 0px)); }
+    .palette-results { max-height: 62dvh; }
+
+    .empty-state { padding: 36px 12px !important; }
+    .rep-card .empty-state, .rep-table .empty-state { text-align: left; }
+}
+
+/* ---- short screens (phones in landscape): keep the form visible above the footer ---- */
+@media (max-height: 520px) {
+    .drawer-head { padding-top: 8px; padding-bottom: 8px; }
+    .drawer-head p { display: none; }
+    .drawer-foot { display: flex; align-items: center; gap: 12px; padding-top: 8px; padding-bottom: 8px; }
+    .drawer-foot .total-section { flex: 1; margin: 0; }
+    .drawer-foot .total-section .gst-line, .drawer-foot .total-section #billGstBreakup { display: none; }
+    .drawer-foot .total-section .grand { margin: 0; padding: 0; border: 0; }
+    .drawer-foot .form-actions { flex: 0 0 auto; }
+    .drawer-foot .form-actions .btn { flex: 0 0 auto; }
+    .modal-content.modal-sm { margin-top: 4vh; }
+}

@@ -97,7 +97,7 @@
         D.rows = [makeRow({ name: '', part: '', hsn: '', qty: '', unit: '', rate: '', gst: 18, discPct: 0, net: '', flags: {} }, true)];
         D.source = 'manual';
         renderReview(); show('review');
-        setTimeout(() => { const f = $('pSupplier'); f && f.focus(); }, 60);
+        if (!(window.matchMedia && matchMedia('(pointer: coarse)').matches)) setTimeout(() => { const f = $('pSupplier'); f && f.focus(); }, 60);
     }
 
     // ======================================================================
