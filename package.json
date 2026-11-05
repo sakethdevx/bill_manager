@@ -3,8 +3,12 @@
     "version": "1.0.0",
     "private": true,
     "type": "module",
+    "engines": { "node": ">=18" },
     "scripts": {
-        "start": "vercel dev"
+        "dev": "node scripts/dev.mjs",
+        "start": "node scripts/dev.mjs",
+        "build": "echo \"Static app in public/ - nothing to build\"",
+        "vercel": "vercel dev"
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.29.0"

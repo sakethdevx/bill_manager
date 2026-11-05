@@ -1,9 +1,13 @@
 {
-    "version": 2,
-    "routes": [
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "framework": null,
+    "buildCommand": null,
+    "outputDirectory": "public",
+    "cleanUrls": true,
+    "headers": [
         {
-            "src": "/(.*)",
-            "dest": "/$1"
+            "source": "/(.*)\\.(js|css)",
+            "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
         }
     ]
 }
