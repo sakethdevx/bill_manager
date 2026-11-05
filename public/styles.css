@@ -1022,3 +1022,23 @@ label.btn { cursor: pointer; }
     .drawer-foot .form-actions .btn { flex: 0 0 auto; }
     .modal-content.modal-sm { margin-top: 4vh; }
 }
+
+/* ---- phone top bar: never let items overlap ---- */
+@media (max-width: 900px) {
+    .topbar { flex-wrap: nowrap; }
+    .topbar-title { flex: 1 1 auto; min-width: 0; }
+    .topbar-title h1 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .search-trigger { margin-left: 0; flex: 0 0 auto; }
+    .topbar-actions { flex: 0 0 auto; }
+}
+@media (max-width: 640px) {
+    /* the enhanced language dropdown re-declares display, so hide it explicitly (language is in the side menu) */
+    .ss-trigger.topbar-lang, .topbar-actions .theme-toggle { display: none !important; }
+    .topbar { padding-left: 10px; padding-right: 10px; gap: 6px; }
+    .topbar-actions { gap: 6px; }
+    .topbar-actions .btn { padding: 0 14px; }
+}
+@media (max-width: 380px) {
+    .topbar-title h1 { font-size: 1rem; white-space: normal; line-height: 1.15; overflow: visible; }
+    .search-trigger, .sync-pill { min-width: 40px; }
+}
