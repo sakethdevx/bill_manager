@@ -533,7 +533,7 @@
             { g: 'Go to', ic: 'box', t: 'Inventory', run: () => showSection('inventory') },
             { g: 'Go to', ic: 'stock', t: 'Stock management', run: () => showSection('stock') },
             { g: 'Go to', ic: 'export', t: 'Export data', run: () => showSection('export') },
-            { g: 'Actions', ic: 'moon', t: 'Toggle dark mode', run: () => toggleTheme() }
+            { g: 'Actions', ic: 'moon', t: 'Change theme (light / dark / system)', run: () => cycleTheme() }
         ].filter(c => matchAll(c.t + ' ' + c.g, toks));
         let list = toks.length ? [] : cmds;
         if (toks.length) {
@@ -567,17 +567,39 @@
     // ------------------------------------------------------------------
     // Theme
     // ------------------------------------------------------------------
-    function currentTheme() {
-        const t = document.documentElement.getAttribute('data-theme');
-        return t || (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    // Preference is 'light' (default), 'dark' or 'system'; 'system' leaves data-theme unset so the OS decides.
+    const THEMES = [['light', 'Light', 'sun'], ['dark', 'Dark', 'moon'], ['system', 'System', 'monitor']];
+    function themePref() { try { const t = localStorage.getItem('bm_theme'); return THEMES.some(x => x[0] === t) ? t : 'light'; } catch (e) { return 'light'; } }
+    function applyTheme(pref) {
+        if (pref === 'system') document.documentElement.removeAttribute('data-theme');
+        else document.documentElement.setAttribute('data-theme', pref);
     }
-    function paintThemeIcon() { document.querySelectorAll('.theme-toggle').forEach(b => { b.innerHTML = icon(currentTheme() === 'dark' ? 'sun' : 'moon'); }); }
-    function toggleTheme() {
-        const n = currentTheme() === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', n);
-        try { localStorage.setItem('bm_theme', n); } catch (e) { }
-        paintThemeIcon();
+    function setTheme(pref) {
+        try { localStorage.setItem('bm_theme', pref); } catch (e) { }
+        applyTheme(pref); paintThemeIcon(); closeThemeMenu();
     }
+    function paintThemeIcon() {
+        const pref = themePref(), t = THEMES.find(x => x[0] === pref);
+        document.querySelectorAll('.theme-toggle').forEach(b => { b.innerHTML = icon(t[2]); b.title = 'Theme: ' + t[1]; });
+    }
+    let themeMenuCleanup = null;
+    function closeThemeMenu() { if (themeMenuCleanup) { themeMenuCleanup(); themeMenuCleanup = null; } const m = document.getElementById('themeMenu'); if (m) m.remove(); }
+    function openThemeMenu(btn) {
+        if (document.getElementById('themeMenu')) return closeThemeMenu();
+        const r = btn.getBoundingClientRect(), pref = themePref();
+        const m = document.createElement('div'); m.id = 'themeMenu'; m.className = 'theme-menu'; m.setAttribute('role', 'menu');
+        m.innerHTML = THEMES.map(([k, label, ic]) => `<button type="button" role="menuitemradio" aria-checked="${k === pref}" data-theme-pref="${k}" class="${k === pref ? 'on' : ''}">${icon(ic)}<span>${label}</span>${k === pref ? icon('check') : ''}</button>`).join('');
+        document.body.appendChild(m);
+        const w = m.offsetWidth, h = m.offsetHeight;
+        m.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+        m.style.top = (r.bottom + 6 + h > window.innerHeight ? Math.max(8, r.top - h - 6) : r.bottom + 6) + 'px';
+        m.addEventListener('click', e => { const o = e.target.closest('[data-theme-pref]'); if (o) setTheme(o.dataset.themePref); });
+        const off = (e) => { if (!m.contains(e.target) && !btn.contains(e.target)) closeThemeMenu(); };
+        const esc = (e) => { if (e.key === 'Escape') closeThemeMenu(); };
+        document.addEventListener('mousedown', off); document.addEventListener('keydown', esc);
+        themeMenuCleanup = () => { document.removeEventListener('mousedown', off); document.removeEventListener('keydown', esc); };
+    }
+    function cycleTheme() { const i = THEMES.findIndex(x => x[0] === themePref()); setTheme(THEMES[(i + 1) % THEMES.length][0]); }
 
     // ------------------------------------------------------------------
     // Global wiring
@@ -604,7 +626,7 @@
             else if (e.key === 'Enter') { e.preventDefault(); runPal(palSel); }
         });
 
-        document.querySelectorAll('.theme-toggle').forEach(b => b.addEventListener('click', toggleTheme)); paintThemeIcon();
+        document.querySelectorAll('.theme-toggle').forEach(b => b.addEventListener('click', () => openThemeMenu(b))); paintThemeIcon();
 
         const sb = $('sidebar'), bd = $('sidebarBackdrop');
         const setSb = (o) => { sb.classList.toggle('open', o); bd.classList.toggle('open', o); };
