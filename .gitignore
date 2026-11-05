@@ -10,3 +10,5 @@ test-*.html
 .env.local
 .env.*.local
 venv/
+
+.data/

@@ -1,98 +1,68 @@
-# Bill Manager Deployment Guide
+# Deploying Bill Manager (Vercel + private GitHub data repo)
 
-Quick steps to deploy this app with persistent, small-text storage.
+The website and API run on Vercel. Your data lives in a **separate, private GitHub repository** (it can belong to a
+different GitHub account). Only the Vercel functions can reach it, using a token kept in environment variables.
 
-1) Install dependencies for local development (optional):
+## 1. Create the data repository
 
-```bash
-npm init -y
-npm install @vercel/kv @supabase/supabase-js
-```
+On the GitHub account that should hold the data:
 
-1) Vercel (dashboard):
-   - In Vercel, Import Project → choose `saketh-005/bill_manager`.
-   - Deploy the project. The `api/` folder will be deployed as serverless functions.
+1. **New repository** -> name e.g. `bill-manager-data` -> **Private** -> tick **Add a README file** -> Create.
+2. Keep 2-factor authentication on for that account.
 
-## Deploying Bill Manager (current implementation)
+## 2. Create an access token (limited to that one repo)
 
- This project uses a static client served on Vercel plus two serverless endpoints in `/api/` backed by Supabase (Postgres). The client authenticates with Supabase Auth (anon key) and persists app state to a single `app_state` row via the server API.
+On the same account: *Settings -> Developer settings -> Personal access tokens -> Fine-grained tokens -> Generate new token*
 
- Quick checklist
+- **Repository access:** *Only select repositories* -> pick `bill-manager-data`
+- **Permissions -> Repository permissions:** **Contents: Read and write** (nothing else is needed)
+- **Expiration:** the longest allowed (1 year). Put a reminder in your calendar to create a new token and replace
+  `GITHUB_TOKEN` in Vercel before it expires - saving stops working when it does.
+- Copy the token (starts with `github_pat_`).
 
-- Create a Supabase project
-- Create the `app_state` table and seed a `main` row
-- Add required environment variables to Vercel
-- Push to GitHub and import the repo into Vercel
+## 3. Environment variables (Vercel -> Project -> Settings -> Environment Variables)
 
- 1) Supabase setup
+| Name | Value |
+|---|---|
+| `APP_USERNAME` | the login name / email you will type on the sign-in page |
+| `APP_PASSWORD` | the password (use a long one) |
+| `SESSION_SECRET` | any random 32+ characters (`openssl rand -hex 32`) - signs the login cookie |
+| `GITHUB_TOKEN` | the token from step 2 |
+| `GITHUB_REPO` | `owner/name`, e.g. `my-shop-account/bill-manager-data` |
+| `GITHUB_BRANCH` | `main` (optional, default `main`) |
 
- a) Create a Supabase project at <https://app.supabase.com/>
+Add them for *Production* (and *Preview* if you use previews), then **redeploy** so the functions see them.
+Changing `SESSION_SECRET` or the password signs everybody out.
 
- b) In the Supabase SQL editor run the minimal schema:
+## 4. Deploy
 
- ```sql
- create table if not exists public.app_state (
-   id text primary key,
-   payload jsonb
- );
+Import the code repo in Vercel (no build command, output is `public/`). Open the site, sign in, and the first save
+creates `data/…` in the data repo.
 
- insert into public.app_state (id, payload)
- values ('main', jsonb_build_object('bills', '[]'::jsonb, 'inventory', '[]'::jsonb, 'stockHistory', '[]'::jsonb))
- on conflict (id) do nothing;
- ```
+### Bringing over data you already entered in the browser
 
- c) (Optional) Enable Email/Password auth if you want to create users. The app expects you to create users in the Supabase dashboard for single-user login (no signup UI).
+If the data repo is empty and this browser still holds the old local data, the app asks *"Upload the data stored in
+this browser?"* right after sign-in. Say yes once; the old copy is kept under `bm_demo_state_uploaded` in the
+browser's storage as a safety copy.
 
- 1) Vercel environment variables (required)
+## How it behaves
 
- Set these in your Vercel project (Environment → Project Variables). Use the **service role** key only for server-side variables.
+- Every change is one commit in the data repo ("Bill 012", "Purchase PUR-0004", ...). The history is your audit trail and
+  undo log; each commit also keeps the files consistent (a sale updates the bill, stock and stock log together).
+- Two devices can work at once: changes are merged record by record. If both devices pick the same bill number, the
+  second one is renumbered automatically and you are told.
+- The pill in the top bar shows *Saved*, *Saving...* or *Not saved (n)*. Unsaved changes stay on the device and upload
+  when the connection returns (also after a reload).
+- Other devices pick up changes when you return to the tab (and once a minute).
 
-- `SUPABASE_URL` — your Supabase project URL (public)
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon/public key (client-side)
-- `SUPABASE_SERVICE_ROLE_KEY` — Supabase **service_role** key (server-side only)
-- `API_KEY` — a long random secret used by server to gate POST writes (recommended)
+## Local development
 
- Notes:
+`cp .env.example .env`, set `APP_USERNAME` / `APP_PASSWORD`, leave `GITHUB_*` empty and run `npm run dev` - data is then
+kept in `.data/`. `npm run dev:mock` runs against an in-memory fake GitHub API so the real GitHub code path can be tried
+offline, and `npm run test:store` checks the storage layer.
 
-- `SUPABASE_SERVICE_ROLE_KEY` must remain secret; never expose it to the browser.
-- The repo's serverless `/api/state` implementation accepts writes if the request contains either:
-  - `x-api-key: <API_KEY>` header matching the Vercel secret, OR
-  - `Authorization: Bearer <access_token>` with a valid Supabase user token.
+## Not included yet
 
- 1) API endpoints
-
-- `/api/config` — returns public values used by the client (`SUPABASE_URL` and anon key). The client loads this on startup and constructs the Supabase client.
-- `/api/state` — GET returns the full app state (bills, inventory, stockHistory). POST upserts the JSON payload into the `app_state` row. POSTs require either `x-api-key` or a Supabase bearer token.
-
- 1) Client behavior
-
-- The client (see `supabase-config.js`) fetches `/api/config` to bootstrap the Supabase client with the anon key.
-- After sign-in the client calls `/api/state` with an `Authorization: Bearer <token>` header so the server validates the user before persisting.
-
- 1) Deploying
-
-- Push your code to GitHub (this repo). In Vercel: Import Project → choose your GitHub repo → Deploy.
-- Ensure Vercel environment variables (above) are set before deploying so server functions can access Supabase.
-
- 1) Security & best practices
-
-- Use `API_KEY` to protect write access to `/api/state` if you are not relying on Supabase user tokens.
-- Rotate the service role key if it was ever committed or exposed.
-- For production, consider implementing Supabase Row Level Security (RLS) and a dedicated table structure instead of a single JSON row.
-
- 1) Troubleshooting
-
-- If `/api/state` returns an error about missing table, confirm the `app_state` table exists and that `SUPABASE_SERVICE_ROLE_KEY` is set in Vercel.
-- If client login does not work, verify `NEXT_PUBLIC_SUPABASE_ANON_KEY` is set and that the user exists in Supabase Auth (created manually via dashboard).
-
- 1) Example client POST (when using `API_KEY`)
-
- ```js
- await fetch('/api/state', {
-   method: 'POST',
-   headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.API_KEY },
-   body: JSON.stringify({ bills, inventory, stockHistory })
- });
- ```
-
- If you'd like, I can add a tiny health-check endpoint, scheduled export job, or a one-click DB export button.
+- Per-user logins and roles (the session already carries a role; routes check it).
+- Cancelling bills instead of deleting them (a deleted bill remains in the git history of the data repo).
+- Storing scanned bill photos (only the extracted values are saved).
