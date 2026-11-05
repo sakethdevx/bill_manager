@@ -77,10 +77,10 @@
                 </div>
 
                 <form class="auth-body"
-                    onsubmit="event.preventDefault(); supabaseSignIn(document.getElementById('login-email').value, document.getElementById('login-password').value)">
+                    onsubmit="event.preventDefault(); signIn(document.getElementById('login-email').value, document.getElementById('login-password').value)">
                     <div class="form-group">
-                        <label for="login-email" data-i18n="label_email">Email</label>
-                        <input type="email" id="login-email" placeholder="you@company.com" required
+                        <label for="login-email" data-i18n="label_email">Username</label>
+                        <input type="text" id="login-email" placeholder="Enter your username" required
                             autocomplete="username">
                     </div>
 
@@ -96,6 +96,8 @@
                         <a href="#" class="forgot" onclick="event.preventDefault(); window.sendPasswordReset();"
                             data-i18n="forgot">Forgot?</a>
                     </div>
+
+                    <p class="auth-error" id="authError" role="alert" hidden></p>
 
                     <button class="btn btn-primary btn-block btn-lg" type="submit" data-i18n="sign_in_btn">Sign In</button>
 
@@ -1090,7 +1092,7 @@
 
     <div id="toasts" class="toasts" aria-live="polite"></div>
 
-    <script src="local-config.js"></script>
+    <script src="sync.js"></script>
     <script src="translations.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>

@@ -79,24 +79,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // Wait for Supabase auth to initialize in `supabase-config.js` which will call `loadAllData()` when signed in.
 });
 
-// Load all data from serverless KV state
+// Load all data from the online store (see sync.js) and render everything
 async function loadAllData() {
     try {
         setDefaultDate();
-
-        // LOCAL DEMO MODE: state lives in localStorage
-        let state = {};
-        try { state = JSON.parse(localStorage.getItem('bm_demo_state')) || {}; } catch (e) { state = {}; }
-
-        bills = state.bills || [];
-        inventory = state.inventory || [];
-        stockHistory = state.stockHistory || [];
-        purchases = state.purchases || [];
+        const state = await Sync.load();
+        applyLoadedState(state);
 
         // Normalize existing inventory codes to short sequential format if needed
         try {
             let changed = false;
-            // helper to test short code
             // allow 3 or 4 digit ITM codes (supports up to 9999 items)
             const isShort = (c) => /^ITM\d{3,4}$/i.test(String(c || ''));
             inventory.forEach(item => {
@@ -105,37 +97,41 @@ async function loadAllData() {
                     changed = true;
                 }
             });
-            if (changed) {
-                // persist normalization back to state
-                await saveState();
-            }
+            if (changed) saveState();
         } catch (e) {
             console.warn('Inventory code normalization failed:', e);
         }
-
-        loadInventory();
-        updateStockItemSelect();
-        loadBills();
-        loadStockHistory();
-        if (window.loadPurchases) loadPurchases();
-        generateNextInvoiceNumber();
-        // Initialize export UI when data is loaded
-        if (window.initExportSection) window.initExportSection();
-        if (window.initBillsControls) window.initBillsControls();
+        renderAllData(true);
     } catch (err) {
         console.error('Error loading state:', err);
     }
 }
 
-// Persist full state to serverless KV
-async function saveState() {
-    try {
-        const payload = { bills, inventory, stockHistory, purchases };
-        localStorage.setItem('bm_demo_state', JSON.stringify(payload));
-    } catch (err) {
-        console.error('Error saving state:', err);
-        alert('Unable to save data to browser storage (storage may be full).');
+function applyLoadedState(state) {
+    bills = state.bills || [];
+    inventory = state.inventory || [];
+    stockHistory = state.stockHistory || [];
+    purchases = state.purchases || [];
+}
+
+function renderAllData(first) {
+    loadInventory();
+    updateStockItemSelect();
+    loadBills();
+    loadStockHistory();
+    if (window.loadPurchases) loadPurchases();
+    if (first) generateNextInvoiceNumber();
+    if (!first && window.onSectionShown) { try { onSectionShown(localStorage.getItem('bm_section') || 'dashboard'); } catch (e) { } }
+    if (first) {
+        // Initialize export UI when data is loaded
+        if (window.initExportSection) window.initExportSection();
+        if (window.initBillsControls) window.initBillsControls();
     }
+}
+
+// Persist changes: sync.js works out what changed and sends only that to the online store
+function saveState() {
+    if (window.Sync) Sync.save();
 }
 
 function uid(prefix = 'id') {
@@ -191,7 +187,7 @@ function setDefaultDate() {
 
 function nextInvoiceNumber() {
     // Highest numeric invoice number across all bills + 1 (unique primary key)
-    let max = 0;
+    let max = (window.Sync && Sync.meta && Sync.meta.maxInvoiceNo) || 0;   // also counts bills from years that are not loaded
     bills.forEach(b => {
         const n = parseInt(String(b.invoiceNo || '').replace(/\D/g, ''), 10);
         if (!isNaN(n) && n > max) max = n;

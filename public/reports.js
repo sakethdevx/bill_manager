@@ -193,7 +193,18 @@
         };
     }
 
+    // Opening stock value per financial year: stored with the rest of the data (falls back to the old per-browser value)
     function openingKey(fy) { return 'bm_opening_stock_' + fy; }
+    function getOpening(fy) {
+        const v = window.Sync ? Sync.getOpeningStock(fy) : undefined;
+        if (v != null) return v;
+        try { return localStorage.getItem(openingKey(fy)) || ''; } catch (e) { return ''; }
+    }
+    function setOpening(fy, raw) {
+        const t = String(raw).trim();
+        if (window.Sync) Sync.setOpeningStock(fy, t === '' ? null : Number(t));
+        try { localStorage.setItem(openingKey(fy), t); } catch (e) { }
+    }
     function buildTrading(P) {
         const c = core(P.from, P.to), bs = c.bs, ps = c.ps, notices = [];
         const turnover = r2(bs.reduce((a, b) => a + num(getBillTotals(b).subtotal), 0));
@@ -204,7 +215,7 @@
         bs.forEach(b => { const v = num(getBillTotals(b).subtotal); if (digitalModes.includes(String(b.paymentMode || '').toLowerCase())) digital += v; else cash += v; });
         digital = r2(digital); cash = r2(cash);
         const closing = r2(inventory.reduce((a, i) => a + num(i.stock) * num(i.costPrice != null ? i.costPrice : (i.priceExGst != null ? i.priceExGst : i.rate)), 0));
-        let opening = 0; try { opening = num(localStorage.getItem(openingKey(P.fy))); } catch (e) { }
+        const opening = num(getOpening(P.fy));
         const gross = r2(turnover + closing - opening - purch - charges);
         const cashPct = turnover ? cash / turnover * 100 : 0;
         const presumptive = r2(digital * 0.06 + cash * 0.08);
@@ -287,7 +298,7 @@
         $('repExport').hidden = guide;
         if (guide) { current = null; $('rep-body').innerHTML = guideHtml(); $('repTitle').textContent = 'Filing guide'; $('repPeriodLabel').textContent = ''; return; }
         const P = currentPeriod();
-        if (tab === 'trading') { try { $('repOpening').value = localStorage.getItem(openingKey(P.fy)) || ''; } catch (e) { } }
+        if (tab === 'trading') { $('repOpening').value = getOpening(P.fy); }
         current = BUILDERS[tab](P);
         $('repTitle').textContent = current.title;
         $('repPeriodLabel').textContent = `${dmy(P.from)} to ${dmy(P.to)}`;
@@ -345,7 +356,7 @@
         if (!$('repTabs')) return;
         $('repTabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { tab = b.dataset.tab; try { localStorage.setItem('bm_report_tab', tab); } catch (x) { } render(); } });
         $('repPeriod').addEventListener('change', render); $('repFrom').addEventListener('change', render); $('repTo').addEventListener('change', render); $('repFy').addEventListener('change', render);
-        $('repOpening').addEventListener('input', () => { const P = currentPeriod(); try { localStorage.setItem(openingKey(P.fy), $('repOpening').value); } catch (e) { } clearTimeout(init.t); init.t = setTimeout(() => { const keep = document.activeElement; render(); if (keep && keep.id === 'repOpening') { $('repOpening').focus(); } }, 400); });
+        $('repOpening').addEventListener('input', () => { const P = currentPeriod(); setOpening(P.fy, $('repOpening').value); clearTimeout(init.t); init.t = setTimeout(() => { const keep = document.activeElement; render(); if (keep && keep.id === 'repOpening') { $('repOpening').focus(); } }, 400); });
         $('repXlsx').addEventListener('click', () => current && toExcel(current));
         $('repPdf').addEventListener('click', () => current && toPdf(current));
         $('repCsv').addEventListener('click', () => current && toCsv(current));

@@ -41,24 +41,29 @@ A comprehensive web-based bill management system with inventory tracking and sto
 - **HTML5**: Structure and layout
 - **CSS3**: Modern, responsive styling
 - **JavaScript (Vanilla)**: Application logic
-- **LocalStorage**: Data persistence
+- **Vercel functions + a private GitHub repo**: login and data storage (see below); the browser keeps an offline copy
 
 ## Run locally
 
 ```bash
-npm install      # only needed for the Supabase API routes
-npm run dev      # http://localhost:3000  (PORT=4000 npm run dev to change)
+cp .env.example .env   # set APP_USERNAME / APP_PASSWORD (leave the GitHub values empty for local work)
+npm run dev            # http://localhost:3000  (PORT=4000 npm run dev to change)
+npm run dev:mock       # same, but talks to an in-memory fake GitHub API (tests the real storage code)
+npm run test:store     # self-check of the storage layer
 ```
 
 `npm run dev` starts a small dependency-free server (`scripts/dev.mjs`) that serves `public/` and runs the
-functions in `api/` the same way Vercel does (try `http://localhost:3000/api/health`). Put secrets in `.env.local`.
+functions in `api/` the same way Vercel does (try `http://localhost:3000/api/health`). Secrets go in `.env` (git-ignored).
+Without `GITHUB_TOKEN`/`GITHUB_REPO`, data is kept in a local `.data/` folder so you can develop offline.
 
 ## Project layout
 
 ```
 public/    static frontend (index.html, app.js, ui.js, styles.css, ...)
-api/       serverless functions (Vercel): /api/health, /api/state, /api/config
-scripts/   dev server
+api/       serverless functions (Vercel): /api/login, /api/logout, /api/me, /api/state, /api/save, /api/health
+lib/       session cookies, GitHub / local-folder storage backends, data sharding + merge logic
+public/sync.js   sign-in screen logic, loading, diff-based saving, offline queue, sync status pill
+scripts/   dev server, GitHub API mock for tests
 vercel.json
 ```
 
@@ -66,8 +71,8 @@ vercel.json
 
 Import the repo in Vercel (or run `vercel`). No build step; `public/` is served as static files and `api/` as functions.
 
-> **Storage:** the app currently runs in local demo mode (data lives in the browser's localStorage, any login works).
-> Persistent server-side storage is still to be decided; `api/state.js` + `DEPLOY.md` describe the Supabase option.
+> **Storage:** data is saved as JSON files in a **private GitHub repository** by the server functions. Set the
+> environment variables listed in `DEPLOY.md` (website login + GitHub token + repo) before the first deploy.
 
 ## Installation
 
@@ -133,83 +138,18 @@ All exports are in CSV format and can be opened in Excel or Google Sheets.
 
 ## Data Storage
 
-All data is stored locally in your browser using LocalStorage:
+Records are committed to a private GitHub repository (one commit per change, so the git history is also an audit trail):
 
-- **Bills**: Complete bill records with all details
-- **Inventory**: All inventory items with current stock levels
-- **Stock History**: Complete transaction log
-
-**Note**: Data is stored per browser. Clearing browser data will delete all records. Consider exporting data regularly as backup.
-
-## Browser Compatibility
-
-Works on all modern browsers:
-
-- ✅ Chrome/Edge (Recommended)
-- ✅ Firefox
-- ✅ Safari
-- ✅ Opera
-
-## Features Based on Your Manual Bill
-
-Based on your manual bill image, this system includes:
-
-- ✅ Invoice numbering
-- ✅ Date tracking
-- ✅ Customer name and address
-- ✅ Transport field
-- ✅ Items list with S.No, Particulars, Qty, Unit Rate, Amount
-- ✅ Total amount calculation
-- ❌ Tax calculations (as requested to neglect)
-- ❌ HSN Code (simplified)
-- ❌ Bank details (can be added to print template if needed)
-
-## Customization
-
-### Change Business Name
-
-Edit the business name in [app.js](app.js#L412):
-
-```javascript
-<h2>BALAJI SAI AUTO MOBILES</h2>
-<p>Auto Nagar, Eluru Road, JANGAREDDYGUDEM</p>
+```
+data/meta.json                     counters, opening stock
+data/inventory.json                all items
+data/bills/2026-27/2026-11.json    one file per month and financial year
+data/purchases/...  data/stock-history/...
 ```
 
-### Modify Colors
-
-Edit CSS variables in [styles.css](styles.css):
-
-```css
-:root {
-    --primary-color: #2563eb;
-    --success-color: #10b981;
-    /* ... other colors */
-}
-```
-
-### Add More Fields
-
-Modify the HTML forms in [index.html](index.html) and corresponding JavaScript functions in [app.js](app.js).
-
-## Backup & Restore
-
-### Manual Backup
-
-1. Export all data (Bills, Inventory, Stock History)
-2. Save CSV files safely
-
-### Browser DevTools Method
-
-1. Open browser DevTools (F12)
-2. Go to Console tab
-3. Export data:
-
-```javascript
-// Export all data
-console.log(localStorage.getItem('bills'));
-console.log(localStorage.getItem('inventory'));
-console.log(localStorage.getItem('stockHistory'));
-```
+The app loads the current and previous financial year on start; older years load on demand (sync status pill -> *Load older years*).
+Changes made offline or during an outage are kept on the device and uploaded automatically once the connection is back.
+See `DEPLOY.md` for the setup.
 
 ## Future Enhancements
 
@@ -228,9 +168,9 @@ Potential features for future versions:
 
 ### Data Not Saving
 
-- Ensure browser allows LocalStorage
-- Check browser console for errors
-- Try a different browser
+- Look at the status pill in the top bar: *Saved* means the change is in the GitHub repo; *Not saved (n)* means n changes are waiting for a connection and will upload automatically
+- If it says *Save error*, click the pill for the message (usually an expired or mis-scoped `GITHUB_TOKEN`)
+- Check the browser console and the Vercel function logs
 
 ### Items Not Showing in Bill Form
 
