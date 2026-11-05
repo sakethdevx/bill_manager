@@ -184,14 +184,19 @@ function setDefaultDate() {
     document.getElementById('invoiceDate').value = today;
 }
 
+function nextInvoiceNumber() {
+    // Highest numeric invoice number across all bills + 1 (unique primary key)
+    let max = 0;
+    bills.forEach(b => {
+        const n = parseInt(String(b.invoiceNo || '').replace(/\D/g, ''), 10);
+        if (!isNaN(n) && n > max) max = n;
+    });
+    return (max + 1).toString().padStart(3, '0');
+}
+
 function generateNextInvoiceNumber() {
-    let nextNumber = 1;
-    if (bills.length > 0) {
-        const lastBill = bills[bills.length - 1];
-        const lastNumber = parseInt(lastBill.invoiceNo.replace(/\D/g, '')) || 0;
-        nextNumber = lastNumber + 1;
-    }
-    document.getElementById('invoiceNo').value = nextNumber.toString().padStart(3, '0');
+    const nextNumber = nextInvoiceNumber();
+    document.getElementById('invoiceNo').value = nextNumber;
 }
 
 function addBillItem() {
@@ -315,14 +320,13 @@ document.getElementById('billForm').addEventListener('submit', function (e) {
 
     const bill = {
         id: uid('bill'),
-        invoiceNo: document.getElementById('invoiceNo').value,
+        invoiceNo: (v => (!v || bills.some(b => b.invoiceNo === v)) ? nextInvoiceNumber() : v)(document.getElementById('invoiceNo').value),
         date: document.getElementById('invoiceDate').value,
         customer: {
-            name: document.getElementById('customerName').value,
-            phone: document.getElementById('customerPhone').value,
-            address: document.getElementById('customerAddress').value
+            name: document.getElementById('customerName').value.trim(),
+            phone: document.getElementById('customerPhone').value.trim(),
+            address: document.getElementById('customerAddress').value.trim()
         },
-        transport: document.getElementById('transport').value,
         paymentMode: document.getElementById('paymentMode') ? document.getElementById('paymentMode').value : 'Cash',
         status: document.getElementById('paymentStatus') ? document.getElementById('paymentStatus').value : 'Unpaid',
         items: items,
@@ -404,7 +408,7 @@ function loadBills() {
         <tr>
             <td><strong>${bill.invoiceNo}</strong></td>
             <td>${formatDate(bill.date)}</td>
-            <td>${bill.customer.name}</td>
+            <td>${escHtml((bill.customer && bill.customer.name) || '-')}</td>
             <td>${bill.items.length} item(s)</td>
             <td>${bill.paymentMode || 'N/A'}</td>
             <td>${bill.status || 'N/A'}</td>
@@ -450,7 +454,7 @@ function viewBill(billId) {
             </div>
             <div class="info-group">
                 <h4>Customer Name</h4>
-                <p>${bill.customer.name}</p>
+                <p>${escHtml(bill.customer.name || 'N/A')}</p>
             </div>
             <div class="info-group">
                 <h4>Phone</h4>
@@ -459,10 +463,6 @@ function viewBill(billId) {
             <div class="info-group">
                 <h4>Address</h4>
                 <p>${bill.customer.address || 'N/A'}</p>
-            </div>
-            <div class="info-group">
-                <h4>Transport</h4>
-                <p>${bill.transport || 'N/A'}</p>
             </div>
             <div class="info-group">
                 <h4>Payment Mode</h4>
@@ -574,7 +574,7 @@ function renderBillToPDF(doc, bill, pageWidth, pageHeight) {
     
     doc.setFontSize(12);
     doc.setTextColor(...PDF_COLORS.TEXT_DARK);
-    doc.text(bill.customer.name, margin + 15, yPos + 40);
+    doc.text(bill.customer.name || 'N/A', margin + 15, yPos + 40);
     
     doc.setFontSize(9);
     doc.setTextColor(...PDF_COLORS.TEXT_GRAY);
@@ -596,11 +596,9 @@ function renderBillToPDF(doc, bill, pageWidth, pageHeight) {
     doc.setTextColor(...PDF_COLORS.TEXT_GRAY);
     doc.setFont(undefined, 'bold');
     
-    const col1 = margin;
-    const col2 = margin + 180;
-    const col3 = margin + 360;
+    const col2 = margin;
+    const col3 = margin + 180;
     
-    doc.text('TRANSPORT', col1, yPos);
     doc.text('PAYMENT METHOD', col2, yPos);
     doc.text('STATUS', col3, yPos);
     
@@ -608,7 +606,6 @@ function renderBillToPDF(doc, bill, pageWidth, pageHeight) {
     doc.setFontSize(10);
     doc.setTextColor(...PDF_COLORS.TEXT_DARK);
     doc.setFont(undefined, 'normal');
-    doc.text(bill.transport || 'N/A', col1, yPos);
     doc.text(bill.paymentMode || 'N/A', col2, yPos);
     
     // Status with color badge
@@ -823,6 +820,9 @@ function deleteBill(billId) {
 
 // Inventory Section
 function showNewInventoryForm() {
+    const codeEl = document.getElementById('itemCode');
+    // Item code is the auto-generated primary key; keep the existing one when editing
+    if (!codeEl.value) codeEl.value = generateNextItemCode();
     document.getElementById('new-inventory-form').style.display = 'block';
 }
 
@@ -878,11 +878,14 @@ document.getElementById('inventoryForm').addEventListener('submit', function (e)
     if (!hsn) { alert('Please enter the HSN code'); return; }
     if (isNaN(gstRate) || gstRate < 0) { alert('Please enter a valid GST rate'); return; }
     if (isNaN(priceExGst)) { alert('Please enter the price (with or without GST)'); return; }
+    // Item code is the primary key: auto-generated and always unique
+    let code = document.getElementById('itemCode').value;
+    if (!code || inventory.some(i => i.code === code)) code = generateNextItemCode();
     const item = {
         id: uid('item'),
-        // Use shorter, sequential auto-generated code when not provided
-        code: document.getElementById('itemCode').value || generateNextItemCode(),
+        code,
         name: document.getElementById('itemName').value,
+        partNumber: document.getElementById('itemPartNumber').value.trim(),
         hsn,
         gstRate,
         priceExGst,
@@ -906,7 +909,7 @@ function loadInventory() {
     const tbody = document.getElementById('inventoryTableBody');
 
     if (inventory.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><p>No items in inventory. Add your first item!</p></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><p>No items in inventory. Add your first item!</p></td></tr>';
         return;
     }
 
@@ -914,6 +917,7 @@ function loadInventory() {
         <tr>
             <td><strong>${item.code}</strong></td>
             <td>${escHtml(item.name)}</td>
+            <td>${escHtml(item.partNumber || '-')}</td>
             <td>${escHtml(item.hsn || '-')}</td>
             <td>${fmtRate(item.gstRate)}</td>
             <td>₹${(item.priceExGst != null ? item.priceExGst : item.rate).toFixed(2)}</td>
@@ -934,6 +938,7 @@ function editInventoryItem(itemId) {
 
     document.getElementById('itemCode').value = item.code;
     document.getElementById('itemName').value = item.name;
+    document.getElementById('itemPartNumber').value = item.partNumber || '';
     document.getElementById('itemHsn').value = item.hsn || '';
     document.getElementById('itemGst').value = item.gstRate || 0;
     document.getElementById('itemRate').value = item.priceExGst != null ? item.priceExGst : item.rate;
@@ -1053,11 +1058,11 @@ function exportBills() {
         return;
     }
 
-    let csv = 'Invoice No,Date,Customer Name,Phone,Address,Transport,Payment Mode,Status,Items,Total Amount\n';
+    let csv = 'Invoice No,Date,Customer Name,Phone,Address,Payment Mode,Status,Items,Total Amount\n';
 
     bills.forEach(bill => {
         const items = bill.items.map(item => `${item.name} (${item.qty}x₹${item.rate})`).join('; ');
-        csv += `"${bill.invoiceNo}","${bill.date}","${bill.customer.name}","${bill.customer.phone}","${bill.customer.address}","${bill.transport}","${bill.paymentMode || ''}","${bill.status || ''}","${items}","${bill.total}"\n`;
+        csv += `"${bill.invoiceNo}","${bill.date}","${bill.customer.name}","${bill.customer.phone}","${bill.customer.address}","${bill.paymentMode || ''}","${bill.status || ''}","${items}","${bill.total}"\n`;
     });
 
     downloadCSV(csv, 'bills_export.csv');
@@ -1069,10 +1074,10 @@ function exportInventory() {
         return;
     }
 
-    let csv = 'Item Code,Item Name,HSN Code,GST Rate (%),Price w/o GST,Price with GST,Stock,Description\n';
+    let csv = 'Item Code,Item Name,Part Number,HSN Code,GST Rate (%),Price w/o GST,Price with GST,Stock,Description\n';
 
     inventory.forEach(item => {
-        csv += `"${item.code}","${item.name}","${item.hsn || ''}","${item.gstRate || 0}","${item.priceExGst != null ? item.priceExGst : item.rate}","${item.priceInclGst != null ? item.priceInclGst : item.rate}","${item.stock || 0}","${item.description || ''}"\n`;
+        csv += `"${item.code}","${item.name}","${item.partNumber || ''}","${item.hsn || ''}","${item.gstRate || 0}","${item.priceExGst != null ? item.priceExGst : item.rate}","${item.priceInclGst != null ? item.priceInclGst : item.rate}","${item.stock || 0}","${item.description || ''}"\n`;
     });
 
     downloadCSV(csv, 'inventory_export.csv');
@@ -1291,6 +1296,7 @@ function buildColumnList(dataset) {
         return [
             { key: 'code', label: 'Item Code' },
             { key: 'name', label: 'Item Name' },
+            { key: 'partNumber', label: 'Part Number' },
             { key: 'hsn', label: 'HSN Code' },
             { key: 'gstRate', label: 'GST Rate (%)' },
             { key: 'priceExGst', label: 'Price w/o GST' },
@@ -1378,7 +1384,7 @@ function getFilteredData(dataset) {
     } else if (dataset === 'inventory') {
         let data = inventory.slice();
         const search = document.getElementById('filter_search') ? (document.getElementById('filter_search').value || '').toLowerCase() : '';
-        if (search) data = data.filter(i => (i.name && i.name.toLowerCase().includes(search)) || (i.code && i.code.toLowerCase().includes(search)));
+        if (search) data = data.filter(i => (i.name && i.name.toLowerCase().includes(search)) || (i.code && i.code.toLowerCase().includes(search)) || (i.partNumber && i.partNumber.toLowerCase().includes(search)));
         return data;
     } else if (dataset === 'stockHistory') {
         let data = stockHistory.slice();

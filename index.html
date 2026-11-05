@@ -138,8 +138,8 @@
                 <form id="billForm">
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Invoice No.</label>
-                            <input type="text" id="invoiceNo" required>
+                            <label>Invoice No. (auto-generated)</label>
+                            <input type="text" id="invoiceNo" readonly required style="background:#f3f4f6;cursor:not-allowed;">
                         </div>
                         <div class="form-group">
                             <label>Date</label>
@@ -149,25 +149,21 @@
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Customer Name</label>
-                            <input type="text" id="customerName" required>
+                            <label>Customer Name (optional)</label>
+                            <input type="text" id="customerName">
                         </div>
                         <div class="form-group">
-                            <label>Phone</label>
+                            <label>Phone (optional)</label>
                             <input type="tel" id="customerPhone">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>Address</label>
+                        <label>Address (optional)</label>
                         <input type="text" id="customerAddress">
                     </div>
 
                     <div class="form-row">
-                        <div class="form-group">
-                            <label>Transport</label>
-                            <input type="text" id="transport">
-                        </div>
                         <div class="form-group">
                             <label>Payment Mode</label>
                             <select id="paymentMode">
@@ -340,8 +336,8 @@
                             <input type="text" id="itemName" required>
                         </div>
                         <div class="form-group">
-                            <label>Item Code</label>
-                            <input type="text" id="itemCode">
+                            <label>Item Code (auto-generated)</label>
+                            <input type="text" id="itemCode" readonly style="background:#f3f4f6;cursor:not-allowed;">
                         </div>
                     </div>
 
@@ -349,6 +345,10 @@
                         <div class="form-group">
                             <label>HSN Code</label>
                             <input type="text" id="itemHsn" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Part Number</label>
+                            <input type="text" id="itemPartNumber">
                         </div>
                         <div class="form-group">
                             <label>GST Rate (%)</label>
@@ -401,6 +401,7 @@
                             <tr>
                                 <th>Item Code</th>
                                 <th>Item Name</th>
+                                <th>Part Number</th>
                                 <th>HSN Code</th>
                                 <th>GST %</th>
                                 <th>Price w/o GST (₹)</th>
