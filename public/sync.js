@@ -260,6 +260,31 @@
         if (window.toast && status === 'saved') window.toast('Your data is now stored online', 'success');
     }
 
+    // ------------------------------------------------------------------ clear local cache
+    // Removes the copy of your data and the view settings kept in this browser, then reloads from the online store.
+    // Theme choice and the safety copy of data uploaded from the old browser-only version are kept.
+    async function clearCache() {
+        closePopover();
+        if (running || !isEmpty(pending)) {
+            if (window.toast) window.toast(`${countPending() || 'Some'} change(s) have not been saved online yet. Save them first (click the Saved/Not saved pill), then clear the cache.`, 'error');
+            return;
+        }
+        const ok = window.uiConfirm
+            ? await window.uiConfirm('Clear local cache?', 'This removes the copy of your data and the table / filter preferences stored in this browser, then reloads everything fresh from the online store. Your data online is not touched and you stay signed in.', 'Clear and reload')
+            : true;
+        if (!ok) return;
+        try {
+            const drop = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k === CACHE_KEY || k === PENDING_KEY || k === 'bm_section' || k === 'bm_dash_period' || k === 'bm_report_tab' || /^bm_tbl_/.test(k) || /^bm_opening_stock_/.test(k)) drop.push(k);
+            }
+            drop.forEach(k => localStorage.removeItem(k));
+        } catch (e) { }
+        try { sessionStorage.clear(); } catch (e) { }
+        location.reload();
+    }
+
     // ------------------------------------------------------------------ meta (opening stock)
     function getMeta(key) { return meta[key]; }
     function setOpeningStock(fy, value) {
@@ -345,7 +370,8 @@
         b.addEventListener('click', togglePopover);
         host.insertBefore(b, host.firstChild);
     }
-    function closePopover() { const p = $('syncPop'); if (p) p.remove(); }
+    let popCleanup = null;
+    function closePopover() { if (popCleanup) { popCleanup(); popCleanup = null; } const p = $('syncPop'); if (p) p.remove(); }
     function togglePopover() {
         if ($('syncPop')) return closePopover();
         const pill = $('syncPill'), r = pill.getBoundingClientRect();
@@ -361,15 +387,19 @@
             <div class="sync-actions">
                 <button class="btn btn-sm" data-act="sync">${isEmpty(pending) ? 'Check for updates' : 'Retry saving now'}</button>
                 ${scope !== 'all' && fys.length > loadedFys.length ? '<button class="btn btn-sm" data-act="all">Load older years</button>' : ''}
+                <button class="btn btn-sm" data-act="clear">Clear local cache</button>
             </div>`;
         document.body.appendChild(p);
         p.style.top = (r.bottom + 6) + 'px'; p.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
         p.addEventListener('click', e => {
             const a = e.target.closest('[data-act]'); if (!a) return;
             if (a.dataset.act === 'all') loadAllHistory();
+            else if (a.dataset.act === 'clear') clearCache();
             else { closePopover(); retryDelay = 5000; if (!isEmpty(pending)) flush(); else refresh(true); }
         });
-        setTimeout(() => document.addEventListener('mousedown', function off(e) { if (!p.contains(e.target) && !pill.contains(e.target)) { closePopover(); document.removeEventListener('mousedown', off); } }), 0);
+        const off = (e) => { if (!p.contains(e.target) && !pill.contains(e.target)) closePopover(); };
+        document.addEventListener('mousedown', off);
+        popCleanup = () => document.removeEventListener('mousedown', off);
     }
 
     // ------------------------------------------------------------------ background work
@@ -396,6 +426,6 @@
         } catch (e) { showAuth('Cannot reach the server. ' + (e.message || '')); }
     }
 
-    window.Sync = { save, load, refresh, loadAllHistory, getMeta, getOpeningStock, setOpeningStock, get meta() { return meta; }, get status() { return status; }, get pendingCount() { return countPending(); }, flush };
+    window.Sync = { save, load, refresh, loadAllHistory, clearCache, getMeta, getOpeningStock, setOpeningStock, get meta() { return meta; }, get status() { return status; }, get pendingCount() { return countPending(); }, flush };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();

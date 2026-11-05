@@ -555,7 +555,8 @@
             { g: 'Go to', ic: 'box', t: 'Inventory', run: () => showSection('inventory') },
             { g: 'Go to', ic: 'stock', t: 'Stock management', run: () => showSection('stock') },
             { g: 'Go to', ic: 'export', t: 'Export data', run: () => showSection('export') },
-            { g: 'Actions', ic: 'moon', t: 'Change theme (light / dark / system)', run: () => cycleTheme() }
+            { g: 'Actions', ic: 'moon', t: 'Change theme (light / dark / system)', run: () => cycleTheme() },
+            { g: 'Actions', ic: 'trash', t: 'Clear local cache', run: () => window.Sync && Sync.clearCache() }
         ].filter(c => matchAll(c.t + ' ' + c.g, toks));
         let list = toks.length ? [] : cmds;
         if (toks.length) {
