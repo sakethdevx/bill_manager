@@ -81,7 +81,11 @@
                 </td></tr>`;
             } else {
                 tbody.innerHTML = pageRows.map(r => cfg.row(r, toks)).join('');
+                // labels for the phone card layout (CSS shows them via attr(data-label))
+                const heads = [...document.querySelectorAll('#' + cfg.container + ' thead th')].map(th => th.textContent.trim());
+                tbody.querySelectorAll('tr').forEach(tr => { tr.classList.add('rc'); [...tr.children].forEach((td, i) => { if (heads[i] && !td.classList.contains('actions-col')) td.dataset.label = heads[i]; }); });
             }
+            syncMobileSort();
 
             const info = $(cfg.info);
             if (info) info.textContent = rows.length ? `Showing ${start + 1}–${Math.min(rows.length, start + st.per)} of ${rows.length}${rows.length !== total ? ` (filtered from ${total})` : ''}` : (total ? `0 of ${total}` : '');
@@ -105,7 +109,25 @@
             api.render();
         };
 
+        // Phone layout has no column headers, so give sorting its own control
+        let sortBar = null;
+        function syncMobileSort() {
+            if (!sortBar) return;
+            const sel = sortBar.querySelector('select'), dir = sortBar.querySelector('.sort-dir');
+            if (st.sortKey) sel.value = st.sortKey;
+            dir.textContent = st.sortDir === 'asc' ? '↑ Low to high' : '↓ High to low';
+        }
+        function buildMobileSort() {
+            const wrap = document.getElementById(cfg.container); if (!wrap || sortBar) return;
+            const ths = [...wrap.querySelectorAll('thead th.sortable')];
+            sortBar = document.createElement('div'); sortBar.className = 'mobile-sort';
+            sortBar.innerHTML = `<label>Sort by</label><select aria-label="Sort by">${ths.map(th => `<option value="${th.dataset.key}">${th.textContent.trim()}</option>`).join('')}</select><button type="button" class="btn btn-sm sort-dir"></button>`;
+            wrap.parentNode.insertBefore(sortBar, wrap);
+            sortBar.querySelector('select').addEventListener('change', e => { st.sortKey = e.target.value; st.sortDir = (cfg.defaultDesc || []).includes(st.sortKey) ? 'desc' : 'asc'; st.page = 1; savePrefs(); api.render(); });
+            sortBar.querySelector('.sort-dir').addEventListener('click', () => { st.sortDir = st.sortDir === 'asc' ? 'desc' : 'asc'; st.page = 1; savePrefs(); api.render(); });
+        }
         api.wire = function () {
+            buildMobileSort();
             const s = $(cfg.searchInput);
             if (s) s.addEventListener('input', deb(e => { st.search = e.target.value; st.page = 1; api.render(); }, 120));
             const per = $(cfg.perPage);
@@ -459,7 +481,7 @@
             if (nowOpen === open) return;
             open = nowOpen;
             document.body.classList.toggle('no-scroll', !!document.querySelector('.drawer[style*="display: block"], #billViewModal.active'));
-            if (open) { onOpen && onOpen(); const f = d.querySelector('input:not([readonly]):not([type=hidden]),select'); setTimeout(() => f && f.focus(), 60); }
+            if (open) { onOpen && onOpen(); const f = d.querySelector('input:not([readonly]):not([type=hidden]),select'); if (!(window.matchMedia && matchMedia('(pointer: coarse)').matches)) setTimeout(() => f && f.focus(), 60); }
             else onClose && onClose();
         }).observe(d, { attributes: true, attributeFilter: ['style'] });
         d.addEventListener('mousedown', e => { if (e.target === d) d.dataset.bd = '1'; else delete d.dataset.bd; });
