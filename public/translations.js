@@ -12,6 +12,7 @@
             forgot: 'Forgot?',
             sign_in_btn: 'Sign In',
             auth_note: 'New here? Contact the administrator to create an account.',
+            nav_dashboard: 'Dashboard',
             nav_bills: 'Bills',
             nav_inventory: 'Inventory',
             nav_stock: 'Stock Management',
@@ -29,6 +30,7 @@
             forgot: 'మర్చిపోయారా?',
             sign_in_btn: 'సైన్ ఇన్',
             auth_note: 'కొత్తవారా? అకౌంట్ సృష్టించడానికి అడ్మిన్‌ని సంప్రదించండి.',
+            nav_dashboard: 'డ్యాష్‌బోర్డ్',
             nav_bills: 'బిల్లులు',
             nav_inventory: 'ఇన్వెంటరీ',
             nav_stock: 'స్టాక్ నిర్వహణ',
@@ -43,13 +45,6 @@
             if (!key) return;
             const text = (dict[key] !== undefined) ? dict[key] : (translations['en'][key] || el.textContent);
             el.textContent = text;
-        });
-        // update nav buttons if present
-        const navMap = [['nav_bills', 'Bills'], ['nav_inventory', 'Inventory'], ['nav_stock', 'Stock Management'], ['nav_export', 'Export']];
-        const navBtns = document.querySelectorAll('.nav-buttons .nav-btn');
-        navBtns.forEach((btn, idx) => {
-            const key = navMap[idx] && navMap[idx][0];
-            if (key && dict[key]) btn.textContent = dict[key];
         });
     }
 

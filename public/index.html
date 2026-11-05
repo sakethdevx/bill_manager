@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>Bill Manager - BALAJI SAI AUTO MOBILES</title>
+    <script>
+        // Apply saved theme before first paint (avoids a light flash in dark mode)
+        try { var t = localStorage.getItem('bm_theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) { }
+    </script>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='15' font-family='Arial' font-weight='700' fill='white' text-anchor='middle'%3EBS%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- SVG icon sprite -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <symbol id="i-dashboard" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor"/></symbol>
+            <symbol id="i-bills" viewBox="0 0 24 24"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 1.5V8h4.5L14 3.5zM8 12v2h8v-2H8zm0 4v2h5v-2H8z" fill="currentColor"/></symbol>
+            <symbol id="i-box" viewBox="0 0 24 24"><path d="M12 2 3 6.5v11L12 22l9-4.5v-11L12 2zm0 2.2 5.9 2.9L12 10 6.1 7.1 12 4.2zM5 8.7l6 3v7.6l-6-3V8.7zm8 10.6v-7.6l6-3v7.6l-6 3z" fill="currentColor"/></symbol>
+            <symbol id="i-stock" viewBox="0 0 24 24"><path d="M4 20V10h4v10H4zm6 0V4h4v16h-4zm6 0v-7h4v7h-4z" fill="currentColor"/></symbol>
+            <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 3 7 8h3v7h4V8h3l-5-5zM5 18v3h14v-3h-2v1H7v-1H5z" fill="currentColor"/></symbol>
+            <symbol id="i-search" viewBox="0 0 24 24"><path d="M10 2a8 8 0 1 0 4.9 14.3l5.4 5.4 1.4-1.4-5.4-5.4A8 8 0 0 0 10 2zm0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12z" fill="currentColor"/></symbol>
+            <symbol id="i-plus" viewBox="0 0 24 24"><path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5z" fill="currentColor"/></symbol>
+            <symbol id="i-x" viewBox="0 0 24 24"><path d="m6.4 5 5.6 5.6L17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4 6.4 5z" fill="currentColor"/></symbol>
+            <symbol id="i-sun" viewBox="0 0 24 24"><path d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM4.2 5.6l1.4-1.4 2.1 2.1-1.4 1.4-2.1-2.1zm12.1 12.1 1.4-1.4 2.1 2.1-1.4 1.4-2.1-2.1zM5.6 19.8l-1.4-1.4 2.1-2.1 1.4 1.4-2.1 2.1zM17.7 7.7l-1.4-1.4 2.1-2.1 1.4 1.4-2.1 2.1z" fill="currentColor"/></symbol>
+            <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" fill="currentColor"/></symbol>
+            <symbol id="i-logout" viewBox="0 0 24 24"><path d="M10 3H4v18h6v-2H6V5h4V3zm6.6 4.6L15.2 9l2 2H9v2h8.2l-2 2 1.4 1.4L21 12l-4.4-4.4z" fill="currentColor"/></symbol>
+            <symbol id="i-menu" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z" fill="currentColor"/></symbol>
+            <symbol id="i-eye" viewBox="0 0 24 24"><path d="M12 5C6.5 5 2.7 9 1 12c1.7 3 5.5 7 11 7s9.3-4 11-7c-1.7-3-5.5-7-11-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-2a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" fill="currentColor"/></symbol>
+            <symbol id="i-edit" viewBox="0 0 24 24"><path d="m3 17.3V21h3.7L18.8 8.9l-3.7-3.7L3 17.3zM20.7 7a1 1 0 0 0 0-1.4l-2.3-2.3a1 1 0 0 0-1.4 0l-1.8 1.8 3.7 3.7L20.7 7z" fill="currentColor"/></symbol>
+            <symbol id="i-trash" viewBox="0 0 24 24"><path d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/></symbol>
+            <symbol id="i-check" viewBox="0 0 24 24"><path d="m9 16.2-3.5-3.5L4 14.1l5 5 11-11-1.4-1.4L9 16.2z" fill="currentColor"/></symbol>
+            <symbol id="i-print" viewBox="0 0 24 24"><path d="M19 8H5a3 3 0 0 0-3 3v6h4v4h12v-4h4v-6a3 3 0 0 0-3-3zM16 19H8v-5h8v5zm3-7a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM18 3H6v4h12V3z" fill="currentColor"/></symbol>
+            <symbol id="i-pdf" viewBox="0 0 24 24"><path d="M12 3v10.2l3.6-3.6L17 11l-6 6-6-6 1.4-1.4L10 13.2V3h2zM5 19h14v2H5v-2z" fill="currentColor"/></symbol>
+            <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 2 1 21h22L12 2zm1 15h-2v-2h2v2zm0-4h-2V9h2v4z" fill="currentColor"/></symbol>
+            <symbol id="i-rupee" viewBox="0 0 24 24"><path d="M6 4h12v2h-3.4c.8.8 1.3 1.8 1.4 3H18v2h-2c-.4 2.8-2.6 4.6-6 4.6h-.5L16 21h-2.8L6.5 15v-2H10c1.7 0 3-.9 3.4-2H6V9h7.2C12.8 7.7 11.7 7 10 7H6V4z" fill="currentColor"/></symbol>
+            <symbol id="i-copy" viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z" fill="currentColor"/></symbol>
+        </defs>
+    </svg>
+
+    <!-- Authentication -->
+    <div id="auth-container" class="auth-container" style="display:flex;">
+        <div class="auth-card" role="region" aria-label="Authentication">
+            <div class="auth-left">
+                <div class="brand">
+                    <div class="logo-mark">BS</div>
+                    <div class="brand-text">
+                        <h1 data-i18n="brand_title">BALAJI SAI AUTOMOBILES</h1>
+                        <p data-i18n="brand_sub">Bill Manager — Auto Mobiles</p>
+                    </div>
+                </div>
+                <p class="brand-lead" data-i18n="brand_lead">Manage bills, inventory and stock — fast and simple.</p>
+                <ul class="brand-points">
+                    <li>GST-ready invoices with CGST / SGST split</li>
+                    <li>Live stock tracking with low-stock alerts</li>
+                    <li>Search, sort and export everything</li>
+                </ul>
+            </div>
+
+            <div class="auth-right">
+                <div class="auth-header">
+                    <h2 data-i18n="welcome_back">Welcome back</h2>
+                    <p class="muted" data-i18n="sign_in_muted">Sign in to continue to your dashboard</p>
+                    <div class="auth-language-selector">
+                        <select class="language-select" aria-label="Language selector">
+                            <option value="en">EN</option>
+                            <option value="te">తెలుగు</option>
+                        </select>
+                    </div>
+                </div>
+
+                <form class="auth-body"
+                    onsubmit="event.preventDefault(); supabaseSignIn(document.getElementById('login-email').value, document.getElementById('login-password').value)">
+                    <div class="form-group">
+                        <label for="login-email" data-i18n="label_email">Email</label>
+                        <input type="email" id="login-email" placeholder="you@company.com" required
+                            autocomplete="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password" data-i18n="label_password">Password</label>
+                        <input type="password" id="login-password" placeholder="Enter your password" required
+                            autocomplete="current-password">
+                    </div>
+
+                    <div class="auth-row">
+                        <label class="remember"><input type="checkbox" id="rememberMe"> <span
+                                data-i18n="remember_me">Remember me</span></label>
+                        <a href="#" class="forgot" onclick="event.preventDefault(); window.sendPasswordReset();"
+                            data-i18n="forgot">Forgot?</a>
+                    </div>
+
+                    <button class="btn btn-primary btn-block btn-lg" type="submit" data-i18n="sign_in_btn">Sign In</button>
+
+                    <p class="auth-note" data-i18n="auth_note">New here? Contact the administrator to create an account.</p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="password-reset-modal" class="modal" style="display:none;">
+        <div class="modal-content modal-sm">
+            <div class="modal-header"><h2>Reset your password</h2></div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="reset-password">New password</label>
+                    <input id="reset-password" type="password" placeholder="New password">
+                </div>
+                <div class="form-group">
+                    <label for="reset-password-confirm">Confirm password</label>
+                    <input id="reset-password-confirm" type="password" placeholder="Confirm password">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="document.getElementById('password-reset-modal').style.display='none'">Cancel</button>
+                <button class="btn btn-primary" onclick="completePasswordReset()">Update password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app-container" class="app-shell" style="display: none;">
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="logo-mark">BS</div>
+                <div class="sidebar-brand-text">
+                    <strong>Balaji Sai</strong>
+                    <span>Auto Mobiles</span>
+                </div>
+            </div>
+
+            <nav class="nav-buttons" aria-label="Main">
+                <button class="nav-btn active" data-section="dashboard" onclick="showSection('dashboard')">
+                    <svg class="ic"><use href="#i-dashboard"/></svg><span data-i18n="nav_dashboard">Dashboard</span>
+                </button>
+                <button class="nav-btn" data-section="bills" onclick="showSection('bills')">
+                    <svg class="ic"><use href="#i-bills"/></svg><span data-i18n="nav_bills">Bills</span>
+                    <em class="nav-count" id="navBillsCount"></em>
+                </button>
+                <button class="nav-btn" data-section="inventory" onclick="showSection('inventory')">
+                    <svg class="ic"><use href="#i-box"/></svg><span data-i18n="nav_inventory">Inventory</span>
+                    <em class="nav-count" id="navInvCount"></em>
+                </button>
+                <button class="nav-btn" data-section="stock" onclick="showSection('stock')">
+                    <svg class="ic"><use href="#i-stock"/></svg><span data-i18n="nav_stock">Stock Management</span>
+                    <em class="nav-count nav-count-warn" id="navLowCount"></em>
+                </button>
+                <button class="nav-btn" data-section="export" onclick="showSection('export')">
+                    <svg class="ic"><use href="#i-export"/></svg><span data-i18n="nav_export">Export</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-foot">
+                <div class="sidebar-tools">
+                    <select class="language-select" aria-label="Language selector">
+                        <option value="en">EN</option>
+                        <option value="te">తెలుగు</option>
+                    </select>
+                    <button class="icon-btn theme-toggle" title="Toggle dark mode" aria-label="Toggle dark mode"></button>
+                </div>
+                <div class="shortcut-hint">Press <kbd>Ctrl</kbd> <kbd>K</kbd> to search anything</div>
+                <div class="user-card">
+                    <div class="avatar" id="userAvatar">U</div>
+                    <div class="user-meta">
+                        <span class="user-info" id="user-email"></span>
+                        <small>Signed in</small>
+                    </div>
+                    <button class="icon-btn" onclick="signOut()" title="Log out" aria-label="Log out">
+                        <svg class="ic"><use href="#i-logout"/></svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <div class="main">
+            <header class="topbar">
+                <button class="icon-btn menu-btn" id="menuBtn" aria-label="Menu"><svg class="ic"><use href="#i-menu"/></svg></button>
+                <div class="topbar-title">
+                    <h1 id="pageTitle">Dashboard</h1>
+                    <p id="pageSub" class="muted"></p>
+                </div>
+                <button class="search-trigger" id="paletteBtn" aria-label="Search everything">
+                    <svg class="ic"><use href="#i-search"/></svg>
+                    <span>Search bills, items…</span>
+                    <kbd>Ctrl K</kbd>
+                </button>
+                <div class="topbar-actions">
+                    <select class="language-select topbar-lang" aria-label="Language selector">
+                        <option value="en">EN</option>
+                        <option value="te">తెలుగు</option>
+                    </select>
+                    <button class="icon-btn theme-toggle" id="themeBtn" title="Toggle dark mode" aria-label="Toggle dark mode">
+                        <svg class="ic"><use href="#i-moon"/></svg>
+                    </button>
+                    <button class="btn btn-primary" onclick="showNewBillForm()">
+                        <svg class="ic"><use href="#i-plus"/></svg><span class="hide-sm">New Bill</span>
+                    </button>
+                </div>
+            </header>
+
+            <main class="content">
+
+                <!-- Dashboard -->
+                <section id="dashboard-section" class="section active">
+                    <div class="kpi-grid" id="kpiGrid"></div>
+
+                    <div class="dash-grid">
+                        <div class="card">
+                            <div class="card-head">
+                                <h3>Sales — last 14 days</h3>
+                                <span class="muted" id="salesRangeTotal"></span>
+                            </div>
+                            <div id="salesChart" class="chart"></div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-head">
+                                <h3>Low &amp; out of stock</h3>
+                                <button class="link-btn" onclick="showSection('inventory'); setInvStockFilter('attention')">View all</button>
+                            </div>
+                            <div id="lowStockList" class="mini-list"></div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-head">
+                                <h3>Recent bills</h3>
+                                <button class="link-btn" onclick="showSection('bills')">View all</button>
+                            </div>
+                            <div id="recentBills" class="mini-list"></div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-head">
+                                <h3>Top selling items</h3>
+                                <span class="muted">by quantity</span>
+                            </div>
+                            <div id="topItems" class="mini-list"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Bills -->
+                <section id="bills-section" class="section">
+                    <div class="card table-card">
+                        <div class="toolbar">
+                            <div class="search-box">
+                                <svg class="ic"><use href="#i-search"/></svg>
+                                <input id="billsSearch" type="search" placeholder="Search bills…  ( / )" title="Search invoice, customer, phone, item" autocomplete="off">
+                            </div>
+                            <select id="billsStatusFilter" class="control-input" aria-label="Status">
+                                <option value="">All statuses</option>
+                                <option>Paid</option>
+                                <option>Unpaid</option>
+                                <option>Pending</option>
+                            </select>
+                            <select id="billsPayFilter" class="control-input" aria-label="Payment mode">
+                                <option value="">All payment modes</option>
+                                <option>Cash</option>
+                                <option>Card</option>
+                                <option>UPI</option>
+                                <option>Netbanking</option>
+                                <option>Other</option>
+                            </select>
+                            <select id="billsRange" class="control-input" aria-label="Date range">
+                                <option value="">Any date</option>
+                                <option value="today">Today</option>
+                                <option value="7">Last 7 days</option>
+                                <option value="30">Last 30 days</option>
+                                <option value="month">This month</option>
+                                <option value="custom">Custom range…</option>
+                            </select>
+                            <span id="billsCustomRange" class="range-inputs" hidden>
+                                <input type="date" id="billsFrom" class="control-input" aria-label="From">
+                                <input type="date" id="billsTo" class="control-input" aria-label="To">
+                            </span>
+                            <button class="btn btn-ghost" id="billsClear" hidden>Clear filters</button>
+                            <div class="toolbar-spacer"></div>
+                            <button class="btn" id="billsExportView" title="Download the rows currently shown (all pages) as CSV">
+                                <svg class="ic"><use href="#i-export"/></svg><span class="hide-sm">Export view</span>
+                            </button>
+                            <button class="btn btn-primary" onclick="showNewBillForm()">
+                                <svg class="ic"><use href="#i-plus"/></svg><span>New Bill</span>
+                            </button>
+                        </div>
+
+                        <div class="summary-chips" id="billsSummary"></div>
+
+                        <div class="table-wrap" id="billsTableContainer">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th data-key="invoiceNo" class="sortable">Invoice No.</th>
+                                        <th data-key="date" class="sortable">Date</th>
+                                        <th data-key="customer.name" class="sortable">Customer</th>
+                                        <th data-key="items" class="sortable">Items</th>
+                                        <th data-key="paymentMode" class="sortable">Payment</th>
+                                        <th data-key="status" class="sortable">Status</th>
+                                        <th data-key="total" class="sortable num">Total</th>
+                                        <th class="actions-col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="billsTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="table-footer">
+                            <div id="billsPaginationInfo" class="pagination-info muted"></div>
+                            <div class="pager" id="billsPager"></div>
+                            <label class="per-page">Rows
+                                <select id="billsPerPage" class="control-input">
+                                    <option>10</option>
+                                    <option>25</option>
+                                    <option>50</option>
+                                    <option>100</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Inventory -->
+                <section id="inventory-section" class="section">
+                    <div class="card table-card">
+                        <div class="toolbar">
+                            <div class="search-box">
+                                <svg class="ic"><use href="#i-search"/></svg>
+                                <input id="invSearch" type="search" placeholder="Search name, code, part number, HSN…  ( / )" autocomplete="off">
+                            </div>
+                            <select id="invStockFilter" class="control-input" aria-label="Stock level">
+                                <option value="">All stock levels</option>
+                                <option value="in">In stock</option>
+                                <option value="low">Low stock</option>
+                                <option value="out">Out of stock</option>
+                                <option value="attention">Low + Out</option>
+                            </select>
+                            <select id="invGstFilter" class="control-input" aria-label="GST rate">
+                                <option value="">All GST rates</option>
+                            </select>
+                            <button class="btn btn-ghost" id="invClear" hidden>Clear filters</button>
+                            <div class="toolbar-spacer"></div>
+                            <button class="btn" id="invExportView" title="Download the rows currently shown as CSV">
+                                <svg class="ic"><use href="#i-export"/></svg><span class="hide-sm">Export view</span>
+                            </button>
+                            <button class="btn btn-primary" onclick="showNewInventoryForm()">
+                                <svg class="ic"><use href="#i-plus"/></svg><span>Add Item</span>
+                            </button>
+                        </div>
+
+                        <div class="summary-chips" id="invSummary"></div>
+
+                        <div class="table-wrap" id="inventoryTableContainer">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th data-key="code" class="sortable">Item Code</th>
+                                        <th data-key="name" class="sortable">Item Name</th>
+                                        <th data-key="partNumber" class="sortable">Part Number</th>
+                                        <th data-key="hsn" class="sortable">HSN</th>
+                                        <th data-key="gstRate" class="sortable num">GST %</th>
+                                        <th data-key="priceExGst" class="sortable num">Price w/o GST</th>
+                                        <th data-key="priceInclGst" class="sortable num">Price with GST</th>
+                                        <th data-key="stock" class="sortable num">Stock</th>
+                                        <th class="actions-col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventoryTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="table-footer">
+                            <div id="invPaginationInfo" class="pagination-info muted"></div>
+                            <div class="pager" id="invPager"></div>
+                            <label class="per-page">Rows
+                                <select id="invPerPage" class="control-input">
+                                    <option>10</option>
+                                    <option selected>25</option>
+                                    <option>50</option>
+                                    <option>100</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Stock -->
+                <section id="stock-section" class="section">
+                    <div class="stock-manager">
+                        <div class="card stock-form-card">
+                            <div class="card-head"><h3>Update stock</h3></div>
+                            <form id="stockForm">
+                                <div class="form-group">
+                                    <label>Item</label>
+                                    <select id="stockItemSelect" required>
+                                        <option value="">-- Select Item --</option>
+                                    </select>
+                                    <small class="field-hint" id="stockCurrentHint"></small>
+                                </div>
+
+                                <div class="seg" role="radiogroup" aria-label="Action" id="stockActionSeg">
+                                    <button type="button" data-v="add" class="on">Add</button>
+                                    <button type="button" data-v="remove">Remove</button>
+                                    <button type="button" data-v="set">Set to</button>
+                                </div>
+                                <select id="stockAction" required hidden>
+                                    <option value="add">Add Stock</option>
+                                    <option value="remove">Remove Stock</option>
+                                    <option value="set">Set Stock</option>
+                                </select>
+
+                                <div class="form-group">
+                                    <label>Quantity</label>
+                                    <input type="number" id="stockQuantity" min="0" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Reason / Note</label>
+                                    <input type="text" id="stockReason" placeholder="e.g., Purchase, Damaged, Correction" list="stockReasons">
+                                    <datalist id="stockReasons"><option value="Purchase"><option value="Sale"><option value="Damaged"><option value="Returned"><option value="Stock correction"></datalist>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary btn-block">Update stock</button>
+                            </form>
+                        </div>
+
+                        <div class="card table-card stock-history">
+                            <div class="toolbar">
+                                <div class="search-box">
+                                    <svg class="ic"><use href="#i-search"/></svg>
+                                    <input id="histSearch" type="search" placeholder="Search item or reason…" autocomplete="off">
+                                </div>
+                                <select id="histActionFilter" class="control-input" aria-label="Action">
+                                    <option value="">All actions</option>
+                                    <option value="add">Added</option>
+                                    <option value="remove">Removed</option>
+                                    <option value="set">Set</option>
+                                </select>
+                                <button class="btn btn-ghost" id="histClear" hidden>Clear</button>
+                                <div class="toolbar-spacer"></div>
+                                <button class="btn" id="histExportView"><svg class="ic"><use href="#i-export"/></svg><span class="hide-sm">Export view</span></button>
+                            </div>
+                            <div class="table-wrap" id="stockHistoryContainer">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th data-key="timestamp" class="sortable">Date &amp; Time</th>
+                                            <th data-key="itemName" class="sortable">Item</th>
+                                            <th data-key="action" class="sortable">Action</th>
+                                            <th data-key="quantity" class="sortable num">Qty</th>
+                                            <th data-key="stockAfter" class="sortable num">Stock After</th>
+                                            <th data-key="reason" class="sortable">Reason</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="stockHistoryBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="table-footer">
+                                <div id="histPaginationInfo" class="pagination-info muted"></div>
+                                <div class="pager" id="histPager"></div>
+                                <label class="per-page">Rows
+                                    <select id="histPerPage" class="control-input">
+                                        <option>10</option>
+                                        <option selected>25</option>
+                                        <option>50</option>
+                                        <option>100</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Export -->
+                <section id="export-section" class="section">
+                    <div class="card export-panel">
+                        <div class="card-head">
+                            <h3>Export data</h3>
+                            <span class="muted">Choose a dataset, the columns and filters, then a format.</span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Dataset</label>
+                                <select id="exportDataset" class="control-input">
+                                    <option value="bills">Bills</option>
+                                    <option value="inventory">Inventory</option>
+                                    <option value="stockHistory">Stock History</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Format</label>
+                                <select id="exportFormat" class="control-input">
+                                    <option value="csv">CSV</option>
+                                    <option value="json">JSON</option>
+                                    <option value="xlsx">Excel (.xlsx)</option>
+                                    <option value="pdf">PDF (Bills only)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="export-grid">
+                            <div class="form-group">
+                                <label>Columns</label>
+                                <div id="exportColumns" class="columns-list"></div>
+                            </div>
+                            <div class="form-group">
+                                <label>Filters</label>
+                                <div id="exportFilters" class="export-filters"></div>
+                            </div>
+                        </div>
+
+                        <div class="export-actions">
+                            <button class="btn" id="previewBtn">Preview</button>
+                            <button class="btn btn-primary" id="doExportBtn"><svg class="ic"><use href="#i-export"/></svg>Export</button>
+                        </div>
+                        <div id="exportPreview" class="export-preview"></div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- New Bill drawer -->
+        <div id="new-bill-form" class="drawer" style="display: none;">
+            <div class="drawer-panel drawer-wide" role="dialog" aria-label="Create new bill">
+                <div class="drawer-head">
+                    <div>
+                        <h3>Create new bill</h3>
+                        <p class="muted">Customer details are optional. Totals update as you type.</p>
+                    </div>
+                    <button class="icon-btn" onclick="hideNewBillForm()" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+                </div>
+
+                <form id="billForm" class="drawer-form">
+                    <div class="drawer-body">
+                        <fieldset class="fs">
+                            <legend>Bill details</legend>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Invoice No. <span class="tag">auto</span></label>
+                                    <input type="text" id="invoiceNo" readonly required class="readonly">
+                                </div>
+                                <div class="form-group">
+                                    <label>Date</label>
+                                    <input type="date" id="invoiceDate" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Payment mode</label>
+                                    <select id="paymentMode">
+                                        <option value="Cash">Cash</option>
+                                        <option value="Card">Card</option>
+                                        <option value="UPI">UPI</option>
+                                        <option value="Netbanking">Netbanking</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Status</label>
+                                    <select id="paymentStatus">
+                                        <option value="Paid">Paid</option>
+                                        <option value="Unpaid">Unpaid</option>
+                                        <option value="Pending">Pending</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="fs">
+                            <legend>Customer <span class="tag">optional</span></legend>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Name</label>
+                                    <input type="text" id="customerName" list="customerNames" autocomplete="off" placeholder="Walk-in customer">
+                                    <datalist id="customerNames"></datalist>
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="tel" id="customerPhone" placeholder="10-digit number">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Address</label>
+                                <input type="text" id="customerAddress">
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="fs">
+                            <legend>Items</legend>
+                            <div id="billItemsList" class="items-list"></div>
+                            <button type="button" class="btn btn-dashed" onclick="addBillItem()">
+                                <svg class="ic"><use href="#i-plus"/></svg>Add another item
+                            </button>
+                            <datalist id="inventoryItemsList"></datalist>
+                        </fieldset>
+                    </div>
+
+                    <div class="drawer-foot">
+                        <div class="total-section">
+                            <div class="gst-line"><span>Total without GST</span><span>₹<span id="billSubtotal">0.00</span></span></div>
+                            <div id="billGstBreakup"></div>
+                            <div class="gst-line"><span>Total CGST</span><span>₹<span id="billTotalCgst">0.00</span></span></div>
+                            <div class="gst-line"><span>Total SGST</span><span>₹<span id="billTotalSgst">0.00</span></span></div>
+                            <div class="gst-line"><span>Total GST</span><span>₹<span id="billTotalGst">0.00</span></span></div>
+                            <div class="grand"><span>Total after GST</span><strong>₹<span id="billTotal">0.00</span></strong></div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn" onclick="hideNewBillForm()">Cancel</button>
+                            <button type="submit" class="btn btn-primary btn-lg">Save bill <kbd>Ctrl ↵</kbd></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Inventory drawer -->
+        <div id="new-inventory-form" class="drawer" style="display: none;">
+            <div class="drawer-panel" role="dialog" aria-label="Inventory item">
+                <div class="drawer-head">
+                    <div>
+                        <h3 id="inventoryFormTitle">Add inventory item</h3>
+                        <p class="muted">Enter either price — the other is calculated from the GST rate.</p>
+                    </div>
+                    <button class="icon-btn" onclick="hideNewInventoryForm()" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+                </div>
+
+                <form id="inventoryForm" class="drawer-form">
+                    <div class="drawer-body">
+                        <div class="form-row">
+                            <div class="form-group flex-2">
+                                <label>Item name</label>
+                                <input type="text" id="itemName" required placeholder="e.g. Brake pad set">
+                            </div>
+                            <div class="form-group">
+                                <label>Item code <span class="tag">auto</span></label>
+                                <input type="text" id="itemCode" readonly class="readonly">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Part number</label>
+                                <input type="text" id="itemPartNumber">
+                            </div>
+                            <div class="form-group">
+                                <label>HSN code</label>
+                                <input type="text" id="itemHsn" required>
+                            </div>
+                            <div class="form-group">
+                                <label>GST rate (%)</label>
+                                <input type="number" id="itemGst" list="gstRates" step="0.01" min="0" value="18" required oninput="syncInventoryPrices()">
+                                <datalist id="gstRates"><option value="0"><option value="5"><option value="12"><option value="18"><option value="28"></datalist>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Price without GST (₹)</label>
+                                <input type="number" id="itemRate" step="0.01" min="0" oninput="syncInventoryPrices('ex')">
+                            </div>
+                            <div class="form-group">
+                                <label>Price with GST (₹)</label>
+                                <input type="number" id="itemPriceInclGst" step="0.01" min="0" oninput="syncInventoryPrices('incl')">
+                            </div>
+                            <div class="form-group">
+                                <label>Current stock</label>
+                                <input type="number" id="itemStock" value="0" min="0">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="itemDescription" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="drawer-foot">
+                        <div class="form-actions">
+                            <button type="button" class="btn" onclick="hideNewInventoryForm()">Cancel</button>
+                            <button type="submit" class="btn btn-primary btn-lg" id="inventorySubmitBtn">Save item</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bill View Modal -->
+        <div id="billViewModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Bill details</h2>
+                    <button class="icon-btn" onclick="closeBillModal()" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+                </div>
+                <div id="billViewContent" class="bill-view"></div>
+                <div class="modal-actions">
+                    <button class="btn" onclick="printBill()"><svg class="ic"><use href="#i-print"/></svg>Print</button>
+                    <button class="btn btn-primary" onclick="downloadBillPDF()"><svg class="ic"><use href="#i-pdf"/></svg>Download PDF</button>
+                    <button class="btn btn-ghost" onclick="closeBillModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Command palette -->
+    <div id="palette" class="palette" hidden>
+        <div class="palette-panel" role="dialog" aria-label="Search everything">
+            <div class="palette-input">
+                <svg class="ic"><use href="#i-search"/></svg>
+                <input id="paletteInput" type="text" placeholder="Search bills, items, or type a command…" autocomplete="off">
+                <kbd>Esc</kbd>
+            </div>
+            <div id="paletteResults" class="palette-results"></div>
+            <div class="palette-foot"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>↵</kbd> open</span></div>
+        </div>
+    </div>
+
+    <!-- Confirm dialog -->
+    <div id="confirmDialog" class="modal confirm" style="display:none;">
+        <div class="modal-content modal-sm">
+            <div class="modal-header"><h2 id="confirmTitle">Are you sure?</h2></div>
+            <div class="modal-body"><p id="confirmText"></p></div>
+            <div class="modal-actions">
+                <button class="btn" id="confirmCancel">Cancel</button>
+                <button class="btn btn-danger" id="confirmOk">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toasts" class="toasts" aria-live="polite"></div>
+
+    <script src="local-config.js"></script>
+    <script src="translations.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="app.js"></script>
+    <script src="ui.js"></script>
+</body>
+
+</html>

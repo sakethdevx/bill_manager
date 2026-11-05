@@ -43,6 +43,32 @@ A comprehensive web-based bill management system with inventory tracking and sto
 - **JavaScript (Vanilla)**: Application logic
 - **LocalStorage**: Data persistence
 
+## Run locally
+
+```bash
+npm install      # only needed for the Supabase API routes
+npm run dev      # http://localhost:3000  (PORT=4000 npm run dev to change)
+```
+
+`npm run dev` starts a small dependency-free server (`scripts/dev.mjs`) that serves `public/` and runs the
+functions in `api/` the same way Vercel does (try `http://localhost:3000/api/health`). Put secrets in `.env.local`.
+
+## Project layout
+
+```
+public/    static frontend (index.html, app.js, ui.js, styles.css, ...)
+api/       serverless functions (Vercel): /api/health, /api/state, /api/config
+scripts/   dev server
+vercel.json
+```
+
+## Deploy to Vercel
+
+Import the repo in Vercel (or run `vercel`). No build step; `public/` is served as static files and `api/` as functions.
+
+> **Storage:** the app currently runs in local demo mode (data lives in the browser's localStorage, any login works).
+> Persistent server-side storage is still to be decided; `api/state.js` + `DEPLOY.md` describe the Supabase option.
+
 ## Installation
 
 1. Clone or download this repository to your computer

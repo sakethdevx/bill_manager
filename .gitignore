@@ -1,9 +1,12 @@
 node_modules/
 .vercel/
-env.local
 /.env
 dist/
 *.log
 package-lock.json
 .DS_Store
 test-*.html
+.env
+.env.local
+.env.*.local
+venv/

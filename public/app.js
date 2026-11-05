@@ -140,26 +140,26 @@ function uid(prefix = 'id') {
 }
 
 // Navigation
+const SECTION_META = {
+    dashboard: ['Dashboard', 'Overview of sales, stock and recent activity'],
+    bills: ['Bills', 'Create, search and manage invoices'],
+    inventory: ['Inventory', 'Items, prices, GST and stock levels'],
+    stock: ['Stock Management', 'Adjust stock and review the history'],
+    export: ['Export', 'Download your data as CSV, Excel, JSON or PDF']
+};
 function showSection(sectionName) {
-    // Hide all sections
-    document.querySelectorAll('.section').forEach(section => {
-        section.classList.remove('active');
-    });
-
-    // Remove active class from all nav buttons
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-
-    // Show selected section
-    document.getElementById(sectionName + '-section').classList.add('active');
-
-    // Ensure export UI is rendered when user opens the Export section
-    if (sectionName === 'export') {
-        if (window.initExportSection) window.initExportSection();
-    }
-    // Add active class to clicked button
-    event.target.classList.add('active');
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.section === sectionName));
+    const el = document.getElementById(sectionName + '-section');
+    if (!el) return;
+    el.classList.add('active');
+    const meta = SECTION_META[sectionName] || [sectionName, ''];
+    const t = document.getElementById('pageTitle'); if (t) t.textContent = meta[0];
+    const s = document.getElementById('pageSub'); if (s) s.textContent = meta[1];
+    try { localStorage.setItem('bm_section', sectionName); } catch (e) { }
+    if (sectionName === 'export' && window.initExportSection) window.initExportSection();
+    if (window.onSectionShown) window.onSectionShown(sectionName);
+    window.scrollTo({ top: 0 });
 }
 
 // Bills Section
@@ -199,25 +199,31 @@ function generateNextInvoiceNumber() {
     document.getElementById('invoiceNo').value = nextNumber;
 }
 
+function refreshItemSuggestions() {
+    const dl = document.getElementById('inventoryItemsList');
+    if (!dl) return;
+    dl.innerHTML = inventory.map(i =>
+        `<option value="${escHtml(i.name)}">${escHtml([i.code, i.partNumber, 'stock ' + (i.stock || 0)].filter(Boolean).join(' · '))}</option>`
+    ).join('');
+}
+
 function addBillItem() {
+    refreshItemSuggestions();
     const itemRow = document.createElement('div');
     itemRow.className = 'item-row';
     itemRow.innerHTML = `
         <div class="item-field">
-            <label>Item</label>
-            <select class="item-select" onchange="fillItemDetails(this)">
-                <option value="">-- Select or Type --</option>
-                ${inventory.map(item => `<option value="${escHtml(item.id)}">${escHtml(item.name)}</option>`).join('')}
-                <option value="custom">Custom Item</option>
-            </select>
-            <input type="text" class="item-name" placeholder="Item name" style="margin-top: 5px;">
+            <label>Item <span class="muted">— search inventory or type a custom item</span></label>
+            <input type="hidden" class="item-select" value="">
+            <input type="text" class="item-name" list="inventoryItemsList" placeholder="Search by name, code or part no." autocomplete="off" oninput="fillItemDetails(this)">
+            <span class="stock-hint"></span>
         </div>
         <div class="item-field">
-            <label>HSN Code</label>
+            <label>HSN</label>
             <input type="text" class="item-hsn" placeholder="HSN">
         </div>
         <div class="item-field">
-            <label>Quantity</label>
+            <label>Qty</label>
             <input type="number" class="item-qty" min="1" value="1" oninput="calculateItemTotal(this)">
         </div>
         <div class="item-field">
@@ -229,37 +235,55 @@ function addBillItem() {
             <input type="number" class="item-gst" step="0.01" min="0" value="0" oninput="calculateItemTotal(this)">
         </div>
         <div class="item-field">
-            <label>Total w/o GST (₹)</label>
-            <input type="number" class="item-amount" step="0.01" readonly>
+            <label>Total w/o GST</label>
+            <input type="number" class="item-amount" step="0.01" readonly tabindex="-1">
         </div>
-        <button type="button" class="remove-item-btn" onclick="removeBillItem(this)">×</button>
+        <button type="button" class="remove-item-btn" onclick="removeBillItem(this)" title="Remove item" aria-label="Remove item">×</button>
     `;
     document.getElementById('billItemsList').appendChild(itemRow);
+    return itemRow;
 }
 
-function fillItemDetails(select) {
-    const row = select.closest('.item-row');
-    const nameInput = row.querySelector('.item-name');
-    const rateInput = row.querySelector('.item-rate');
-    const hsnInput = row.querySelector('.item-hsn');
-    const gstInput = row.querySelector('.item-gst');
+// Find an inventory item from what the user typed (exact name, code or part number)
+function findInventoryMatch(text) {
+    const q = String(text || '').trim().toLowerCase();
+    if (!q) return null;
+    return inventory.find(i => (i.name || '').toLowerCase() === q)
+        || inventory.find(i => (i.code || '').toLowerCase() === q)
+        || inventory.find(i => i.partNumber && i.partNumber.toLowerCase() === q) || null;
+}
 
-    if (select.value === 'custom') {
-        nameInput.value = '';
-        rateInput.value = '';
-        hsnInput.value = '';
-        gstInput.value = 0;
-        nameInput.focus();
-    } else if (select.value) {
-        const item = inventory.find(i => i.id === select.value);
-        if (item) {
-            nameInput.value = item.name;
-            rateInput.value = item.priceExGst != null ? item.priceExGst : item.rate;
-            hsnInput.value = item.hsn || '';
-            gstInput.value = item.gstRate || 0;
-            calculateItemTotal(row.querySelector('.item-qty'));
-        }
+function updateStockHint(row) {
+    const hint = row.querySelector('.stock-hint');
+    const id = row.querySelector('.item-select').value;
+    const item = id && inventory.find(i => i.id === id);
+    if (!item) { hint.textContent = ''; hint.className = 'stock-hint'; return; }
+    const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+    const stock = item.stock || 0;
+    if (qty > stock) { hint.textContent = `Only ${stock} in stock (short by ${qty - stock})`; hint.className = 'stock-hint warn'; }
+    else { hint.textContent = `${stock} in stock · ${item.code}`; hint.className = 'stock-hint ok'; }
+}
+
+function fillItemDetails(nameInput) {
+    const row = nameInput.closest('.item-row');
+    const idInput = row.querySelector('.item-select');
+    const hsnInput = row.querySelector('.item-hsn');
+    const rateInput = row.querySelector('.item-rate');
+    const gstInput = row.querySelector('.item-gst');
+    const item = findInventoryMatch(nameInput.value);
+
+    if (item) {
+        idInput.value = item.id;
+        nameInput.value = item.name;
+        rateInput.value = item.priceExGst != null ? item.priceExGst : item.rate;
+        hsnInput.value = item.hsn || '';
+        gstInput.value = item.gstRate || 0;
+        calculateItemTotal(row.querySelector('.item-qty'));
+    } else if (idInput.value) {
+        // The user changed a previously matched name: it is now a custom item
+        idInput.value = '';
     }
+    updateStockHint(row);
 }
 
 function calculateItemTotal(input) {
@@ -267,6 +291,7 @@ function calculateItemTotal(input) {
     const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
     const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
     row.querySelector('.item-amount').value = round2(qty * rate).toFixed(2);
+    updateStockHint(row);
     calculateBillTotal();
 }
 
@@ -372,64 +397,6 @@ document.getElementById('billForm').addEventListener('submit', function (e) {
     alert('Bill saved successfully!');
 });
 
-function loadBills() {
-    const tbody = document.getElementById('billsTableBody');
-
-    // Apply search filter
-    let items = bills.slice();
-    if (billsSearch) {
-        const q = billsSearch.toLowerCase();
-        items = items.filter(b => (b.invoiceNo && b.invoiceNo.toLowerCase().includes(q)) || (b.customer && b.customer.name && b.customer.name.toLowerCase().includes(q)) || (b.items && b.items.some(it => it.name && it.name.toLowerCase().includes(q))));
-    }
-
-    // Sorting
-    if (billsSortKey) {
-        items.sort((a, b) => {
-            const va = getValueByPath(a, billsSortKey);
-            const vb = getValueByPath(b, billsSortKey);
-            if (va == null) return 1;
-            if (vb == null) return -1;
-            if (typeof va === 'number' && typeof vb === 'number') return billsSortDir === 'asc' ? va - vb : vb - va;
-            return billsSortDir === 'asc' ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
-        });
-    }
-
-    const total = items.length;
-    const per = parseInt(billsPerPage) || 10;
-    const pages = Math.max(1, Math.ceil(total / per));
-    if (billsPage > pages) billsPage = pages;
-    const start = (billsPage - 1) * per;
-    const pageItems = items.slice(start, start + per);
-
-    if (items.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><p>No bills found. Create your first bill!</p></td></tr>';
-    } else {
-        tbody.innerHTML = pageItems.map(bill => `
-        <tr>
-            <td><strong>${bill.invoiceNo}</strong></td>
-            <td>${formatDate(bill.date)}</td>
-            <td>${escHtml((bill.customer && bill.customer.name) || '-')}</td>
-            <td>${bill.items.length} item(s)</td>
-            <td>${bill.paymentMode || 'N/A'}</td>
-            <td>${bill.status || 'N/A'}</td>
-            <td><strong>₹${bill.total.toFixed(2)}</strong></td>
-            <td class="table-actions">
-                <button class="btn-view" onclick="viewBill('${bill.id}')">View</button>
-                <button class="btn-delete" onclick="deleteBill('${bill.id}')">Delete</button>
-            </td>
-        </tr>
-    `).join('');
-    }
-
-    // Update pagination info
-    const info = document.getElementById('billsPaginationInfo');
-    if (info) info.textContent = `Showing ${Math.min(total, start + 1)}-${Math.min(total, start + per)} of ${total}`;
-    const prev = document.getElementById('billsPrev');
-    const next = document.getElementById('billsNext');
-    if (prev) prev.disabled = billsPage <= 1;
-    if (next) next.disabled = billsPage >= pages;
-}
-
 function viewBill(billId) {
     const bill = bills.find(b => b.id === billId);
     if (!bill) return;
@@ -446,7 +413,7 @@ function viewBill(billId) {
         <div class="bill-info">
             <div class="info-group">
                 <h4>Invoice No.</h4>
-                <p>${bill.invoiceNo}</p>
+                <p>${escHtml(bill.invoiceNo)}</p>
             </div>
             <div class="info-group">
                 <h4>Date</h4>
@@ -458,15 +425,19 @@ function viewBill(billId) {
             </div>
             <div class="info-group">
                 <h4>Phone</h4>
-                <p>${bill.customer.phone || 'N/A'}</p>
+                <p>${escHtml(bill.customer.phone || 'N/A')}</p>
             </div>
             <div class="info-group">
                 <h4>Address</h4>
-                <p>${bill.customer.address || 'N/A'}</p>
+                <p>${escHtml(bill.customer.address || 'N/A')}</p>
             </div>
             <div class="info-group">
                 <h4>Payment Mode</h4>
                 <p>${bill.paymentMode || 'N/A'}</p>
+            </div>
+            <div class="info-group">
+                <h4>Status</h4>
+                <p>${bill.status || 'N/A'}</p>
             </div>
             <div class="info-group">
                 <h4>Status</h4>
@@ -809,16 +780,18 @@ function printBill() {
     }, 300);
 }
 
-function deleteBill(billId) {
-    if (!confirm('Are you sure you want to delete this bill?')) return;
+async function deleteBill(billId) {
+    const b = bills.find(x => x.id === billId);
+    if (!await uiConfirm('Delete bill ' + (b ? b.invoiceNo : '') + '?', 'This permanently removes the bill. Stock already deducted is not restored.')) return;
     const idx = bills.findIndex(b => b.id === billId);
     if (idx !== -1) bills.splice(idx, 1);
     saveState();
     loadBills();
-    alert('Bill deleted successfully');
+    alert('Bill deleted');
 }
 
 // Inventory Section
+let editingItemId = null;
 function showNewInventoryForm() {
     const codeEl = document.getElementById('itemCode');
     // Item code is the auto-generated primary key; keep the existing one when editing
@@ -829,6 +802,9 @@ function showNewInventoryForm() {
 function hideNewInventoryForm() {
     document.getElementById('new-inventory-form').style.display = 'none';
     document.getElementById('inventoryForm').reset();
+    editingItemId = null;
+    document.getElementById('itemCode').value = '';
+    const t = document.getElementById('inventoryFormTitle'); if (t) t.textContent = 'Add inventory item';
 }
 
 // Generate a short sequential item code (ITM001, ITM002...).
@@ -880,7 +856,7 @@ document.getElementById('inventoryForm').addEventListener('submit', function (e)
     if (isNaN(priceExGst)) { alert('Please enter the price (with or without GST)'); return; }
     // Item code is the primary key: auto-generated and always unique
     let code = document.getElementById('itemCode').value;
-    if (!code || inventory.some(i => i.code === code)) code = generateNextItemCode();
+    if (!code || inventory.some(i => i.code === code && i.id !== editingItemId)) code = generateNextItemCode();
     const item = {
         id: uid('item'),
         code,
@@ -895,42 +871,26 @@ document.getElementById('inventoryForm').addEventListener('submit', function (e)
         description: document.getElementById('itemDescription').value
     };
 
-    inventory.push(item);
+    if (editingItemId) {
+        const existing = inventory.find(i => i.id === editingItemId);
+        if (existing) {
+            // keep the primary key (code) and internal id
+            Object.assign(existing, item, { id: existing.id, code: existing.code });
+        } else {
+            inventory.push(item);
+        }
+    } else {
+        inventory.push(item);
+    }
+    const wasEdit = !!editingItemId;
     saveState();
     hideNewInventoryForm();
     loadInventory();
     updateStockItemSelect();
-    alert('Item added successfully!');
+    alert(wasEdit ? 'Item updated' : 'Item added successfully!');
 });
 
 
-
-function loadInventory() {
-    const tbody = document.getElementById('inventoryTableBody');
-
-    if (inventory.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><p>No items in inventory. Add your first item!</p></td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = inventory.map(item => `
-        <tr>
-            <td><strong>${item.code}</strong></td>
-            <td>${escHtml(item.name)}</td>
-            <td>${escHtml(item.partNumber || '-')}</td>
-            <td>${escHtml(item.hsn || '-')}</td>
-            <td>${fmtRate(item.gstRate)}</td>
-            <td>₹${(item.priceExGst != null ? item.priceExGst : item.rate).toFixed(2)}</td>
-            <td>₹${(item.priceInclGst != null ? item.priceInclGst : item.rate).toFixed(2)}</td>
-            <td><strong>${item.stock || 0}</strong></td>
-            <td>${item.description || 'N/A'}</td>
-            <td class="table-actions">
-                <button class="btn-edit" onclick="editInventoryItem('${item.id}')">Edit</button>
-                <button class="btn-delete" onclick="deleteInventoryItem('${item.id}')">Delete</button>
-            </td>
-        </tr>
-    `).join('');
-}
 
 function editInventoryItem(itemId) {
     const item = inventory.find(i => i.id === itemId);
@@ -947,15 +907,15 @@ function editInventoryItem(itemId) {
     document.getElementById('itemStock').value = item.stock || 0;
     document.getElementById('itemDescription').value = item.description || '';
 
-    // Remove old item from local inventory so form submit will re-add (acts like edit)
-    const idx = inventory.findIndex(i => i.id === itemId);
-    if (idx !== -1) inventory.splice(idx, 1);
-    saveState();
+    // Edit in place: the item stays in inventory until the form is saved (cancel loses nothing)
+    editingItemId = itemId;
+    const t = document.getElementById('inventoryFormTitle'); if (t) t.textContent = 'Edit item ' + item.code;
     showNewInventoryForm();
 }
 
-function deleteInventoryItem(itemId) {
-    if (!confirm('Are you sure you want to delete this item?')) return;
+async function deleteInventoryItem(itemId) {
+    const it = inventory.find(x => x.id === itemId);
+    if (!await uiConfirm('Delete ' + (it ? it.name : 'item') + '?', 'This removes the item from inventory. Past bills keep their copy of the item.')) return;
     const idx = inventory.findIndex(i => i.id === itemId);
     if (idx !== -1) inventory.splice(idx, 1);
     saveState();
@@ -1029,26 +989,6 @@ function addStockHistory(itemId, action, quantity, stockAfter, reason) {
 
     stockHistory.unshift(history);
     saveState();
-}
-
-function loadStockHistory() {
-    const tbody = document.getElementById('stockHistoryBody');
-
-    if (stockHistory.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><p>No stock history yet</p></td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = stockHistory.slice(0, 50).map(history => `
-        <tr>
-            <td>${formatDateTime(history.timestamp)}</td>
-            <td>${history.itemName}</td>
-            <td><span style="text-transform: capitalize;">${history.action}</span></td>
-            <td><strong>${history.quantity}</strong></td>
-            <td><strong>${history.stockAfter}</strong></td>
-            <td>${history.reason || 'N/A'}</td>
-        </tr>
-    `).join('');
 }
 
 // Export Functions
@@ -1133,14 +1073,6 @@ function formatDateTime(timestamp) {
         date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 }
 
-// Close modal on outside click
-window.onclick = function (event) {
-    const modal = document.getElementById('billViewModal');
-    if (event.target === modal) {
-        closeBillModal();
-    }
-}
-
 // --- Export page initialization and helpers ---
 function initExportSection() {
     const datasetSelect = document.getElementById('exportDataset');
@@ -1202,76 +1134,10 @@ function initExportSection() {
     renderExportFilters(datasetSelect.value);
 }
 
-// --- Bills UI Controls: search, pagination, sorting, resizing ---
+// --- Utilities ---
 function debounce(fn, wait) {
     let t;
     return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), wait); };
-}
-
-function initBillsControls() {
-    const search = document.getElementById('billsSearch');
-    const perSelect = document.getElementById('billsPerPage');
-    const prev = document.getElementById('billsPrev');
-    const next = document.getElementById('billsNext');
-
-    if (search) {
-        search.value = billsSearch || '';
-        search.addEventListener('input', debounce((e) => { billsSearch = e.target.value; billsPage = 1; loadBills(); }, 250));
-    }
-
-    if (perSelect) {
-        perSelect.value = String(billsPerPage);
-        perSelect.addEventListener('change', (e) => { billsPerPage = parseInt(e.target.value); billsPage = 1; loadBills(); });
-    }
-
-    if (prev) prev.addEventListener('click', () => { if (billsPage > 1) { billsPage--; loadBills(); } });
-    if (next) next.addEventListener('click', () => { billsPage++; loadBills(); });
-
-    // Sorting by clicking header
-    const headers = document.querySelectorAll('#billsTableContainer thead th.sortable');
-    headers.forEach(h => {
-        h.style.cursor = 'pointer';
-        h.addEventListener('click', () => {
-            const key = h.dataset.key;
-            sortBills(key);
-            // visual indicator
-            headers.forEach(x => x.classList.remove('sorted-asc', 'sorted-desc'));
-            h.classList.add(billsSortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
-        });
-    });
-
-    // Make columns resizable
-    makeTableResizable(document.querySelector('#billsTableContainer table'));
-}
-
-function sortBills(key) {
-    if (billsSortKey === key) billsSortDir = billsSortDir === 'asc' ? 'desc' : 'asc';
-    else { billsSortKey = key; billsSortDir = 'asc'; }
-    loadBills();
-}
-
-function makeTableResizable(table) {
-    if (!table) return;
-    const ths = table.querySelectorAll('th');
-    ths.forEach(th => {
-        const resizer = th.querySelector('.th-resizer');
-        if (!resizer) return;
-        resizer.style.display = 'inline-block';
-        resizer.style.width = '8px';
-        resizer.style.height = '100%';
-        resizer.style.float = 'right';
-        resizer.style.cursor = 'col-resize';
-        resizer.addEventListener('mousedown', initResize);
-        function initResize(e) {
-            e.preventDefault();
-            const startX = e.clientX;
-            const startWidth = th.offsetWidth;
-            function onMove(ev) { th.style.width = (startWidth + (ev.clientX - startX)) + 'px'; }
-            function onUp() { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); }
-            document.addEventListener('mousemove', onMove);
-            document.addEventListener('mouseup', onUp);
-        }
-    });
 }
 
 function buildColumnList(dataset) {

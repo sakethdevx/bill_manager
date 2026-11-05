@@ -11,7 +11,7 @@
         const app = document.getElementById('app-container');
         if (session) {
             auth.style.display = 'none';
-            app.style.display = 'block';
+            app.style.display = 'grid';
             document.getElementById('user-email').textContent = session.email;
             if (window.loadAllData) window.loadAllData();
         } else {
