@@ -523,11 +523,62 @@
                 }
             }
         });
-        form.addEventListener('input', e => {
-            if (e.target.classList.contains('item-name')) {
-                // datalist selection / typing resolved to an inventory item
-            }
-        });
+        attachBillItemSuggest(form);
+    }
+
+    // Suggestions under the Item box of each bill row: inventory matched on name, code, part no. or HSN
+    // (a custom box instead of <datalist>, which iOS Safari and some browsers don't show reliably)
+    function attachBillItemSuggest(form) {
+        const box = document.createElement('div');
+        box.className = 'suggest suggest-fixed'; box.hidden = true; box.setAttribute('role', 'listbox');
+        document.body.appendChild(box);
+        let items = [], sel = -1, cur = null;
+        const close = () => { box.hidden = true; sel = -1; };
+        const render = () => {
+            if (!cur) return close();
+            const toks = tokens(cur.value);
+            const row = cur.closest('.item-row');
+            const used = new Set([...form.querySelectorAll('.item-row')].filter(r => r !== row).map(r => r.querySelector('.item-select').value).filter(Boolean));
+            let list = inventory.filter(i => !used.has(i.id));
+            if (toks.length) list = list.filter(i => matchAll([i.name, i.code, i.partNumber, i.hsn].join(' '), toks));
+            if (row.querySelector('.item-select').value && toks.length && list.length === 1) return close();
+            items = list.slice(0, 8);
+            if (!items.length) return close();
+            box.innerHTML = items.map((i, n) => `<div class="sg-item${n === sel ? ' sel' : ''}" role="option" data-i="${n}">
+                <strong>${hl(i.name, toks)}</strong>
+                <small><span class="badge badge-${(i.stock || 0) > 0 ? 'success' : 'danger'}">stock ${i.stock || 0}</span></small>
+                <em class="mono">${[i.partNumber && hl(i.partNumber, toks), i.code && hl(i.code, toks), i.hsn && 'HSN ' + hl(i.hsn, toks), i.gstRate != null ? i.gstRate + '% GST' : ''].filter(Boolean).join(' · ')}</em></div>`).join('');
+            const r = cur.getBoundingClientRect();
+            const width = Math.min(Math.max(r.width, 340), window.innerWidth - 16);
+            box.style.left = Math.max(8, Math.min(r.left, window.innerWidth - width - 8)) + 'px';
+            box.style.width = width + 'px';
+            const below = window.innerHeight - r.bottom;
+            if (below < 220 && r.top > below) { box.style.top = 'auto'; box.style.bottom = (window.innerHeight - r.top + 4) + 'px'; }
+            else { box.style.bottom = 'auto'; box.style.top = (r.bottom + 4) + 'px'; }
+            box.hidden = false;
+        };
+        const pick = (n) => {
+            const it = items[n]; if (!it || !cur) return;
+            const input = cur;
+            input.value = it.name;
+            window.fillItemDetails(input);
+            close();
+            const q = input.closest('.item-row').querySelector('.item-qty'); q && q.focus();
+        };
+        form.addEventListener('focusin', e => { if (e.target.classList.contains('item-name')) { cur = e.target; sel = -1; render(); } else { cur = null; close(); } });
+        form.addEventListener('input', e => { if (e.target.classList.contains('item-name')) { cur = e.target; sel = -1; render(); } });
+        form.addEventListener('focusout', () => setTimeout(() => { if (!cur || document.activeElement !== cur) close(); }, 150));
+        form.addEventListener('keydown', e => {
+            if (box.hidden || !cur || e.target !== cur) return;
+            if (e.key === 'ArrowDown') { e.preventDefault(); sel = (sel + 1) % items.length; render(); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); sel = (sel - 1 + items.length) % items.length; render(); }
+            else if (e.key === 'Enter' && sel >= 0) { e.preventDefault(); e.stopImmediatePropagation(); pick(sel); }
+            else if (e.key === 'Escape') { e.stopPropagation(); close(); }
+        }, true);
+        box.addEventListener('mousedown', e => { const el = e.target.closest('.sg-item'); if (el) { e.preventDefault(); pick(+el.dataset.i); } });
+        const body = form.closest('.drawer-body') || form.parentElement;
+        body && body.addEventListener('scroll', () => { if (!box.hidden) render(); });
+        window.addEventListener('resize', close);
     }
 
     // ------------------------------------------------------------------

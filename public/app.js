@@ -216,7 +216,7 @@ function addBillItem() {
         <div class="item-field">
             <label>Item <span class="muted">— search inventory or type a custom item</span></label>
             <input type="hidden" class="item-select" value="">
-            <input type="text" class="item-name" list="inventoryItemsList" placeholder="Search by name, code or part no." autocomplete="off" oninput="fillItemDetails(this)">
+            <input type="text" class="item-name" placeholder="Search by name, code or part no." autocomplete="off" oninput="fillItemDetails(this)">
             <span class="stock-hint"></span>
         </div>
         <div class="item-field">
