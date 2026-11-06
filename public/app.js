@@ -755,32 +755,174 @@ function closeBillModal() {
     currentBill = null;
 }
 
+// ----------------------------------------------------------------------
+// Printing: documents are rendered into a hidden frame with their own light, A4-sized stylesheet,
+// so printing never depends on the app's theme and works without pop-ups (also on phones).
+// ----------------------------------------------------------------------
+const PRINT_CSS = `
+@page { size: A4 portrait; margin: 12mm; }
+@page land { size: A4 landscape; margin: 10mm; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html, body { margin: 0; padding: 0; background: #fff; }
+body { font: 12px/1.45 "Helvetica Neue", Arial, "Noto Sans", "Noto Sans Telugu", sans-serif; color: #111; }
+body.landscape .doc { page: land; }
+h1, h2, h3, h4, p { margin: 0; }
+.mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
+.num { text-align: right; white-space: nowrap; }
+.ctr { text-align: center; }
+.inv-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; border-bottom: 2px solid #1e293b; padding-bottom: 10px; }
+.inv-head h1 { font-size: 22px; letter-spacing: .4px; color: #1e293b; }
+.inv-head p { color: #444; margin-top: 2px; }
+.inv-title { text-align: right; }
+.inv-title b { display: block; font-size: 16px; letter-spacing: 2px; color: #1e293b; }
+.inv-title span { display: block; font-size: 10.5px; color: #555; margin-top: 2px; }
+.boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #94a3b8; border-top: 0; }
+.box { padding: 8px 10px; }
+.box + .box { border-left: 1px solid #94a3b8; }
+.box h4 { font-size: 9.5px; text-transform: uppercase; letter-spacing: .8px; color: #64748b; margin-bottom: 4px; }
+.box .big { font-size: 13.5px; font-weight: 700; }
+.kv { display: grid; grid-template-columns: 92px 1fr; gap: 2px 8px; }
+.kv span:nth-child(odd) { color: #64748b; }
+table { width: 100%; border-collapse: collapse; }
+table.items { margin-top: 12px; border: 1px solid #94a3b8; }
+.items th { background: #e2e8f0; color: #1e293b; font-size: 10px; text-transform: uppercase; letter-spacing: .4px; text-align: left; padding: 6px 6px; border-bottom: 1px solid #94a3b8; }
+.items td { padding: 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+.items tr { page-break-inside: avoid; }
+.items th.num, .items td.num { text-align: right; }
+.items tfoot td { font-weight: 700; background: #f1f5f9; border-top: 1px solid #94a3b8; border-bottom: 0; }
+.lower { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: start; margin-top: 12px; page-break-inside: avoid; }
+table.tax { border: 1px solid #94a3b8; font-size: 11px; }
+.tax th { background: #e2e8f0; font-size: 9.5px; text-transform: uppercase; padding: 5px 6px; text-align: right; border-bottom: 1px solid #94a3b8; }
+.tax th:first-child, .tax td:first-child { text-align: left; }
+.tax td { padding: 5px 6px; text-align: right; border-bottom: 1px solid #e2e8f0; }
+.tax tfoot td { font-weight: 700; background: #f1f5f9; }
+.sum { border: 1px solid #94a3b8; }
+.sum div { display: flex; justify-content: space-between; padding: 5px 10px; border-bottom: 1px solid #e2e8f0; }
+.sum .grand { background: #1e293b; color: #fff; font-size: 15px; font-weight: 700; border: 0; padding: 8px 10px; }
+.words { margin-top: 10px; padding: 8px 10px; border: 1px solid #94a3b8; background: #f8fafc; page-break-inside: avoid; }
+.words b { text-transform: none; }
+.foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-top: 18px; page-break-inside: avoid; }
+.foot .terms { font-size: 10.5px; color: #555; max-width: 62%; }
+.foot .sign { text-align: center; min-width: 190px; }
+.foot .sign .line { height: 54px; border-bottom: 1px solid #333; margin-bottom: 4px; }
+.thanks { text-align: center; margin-top: 14px; color: #64748b; font-size: 10.5px; }
+/* generic detail views (purchases etc.) */
+.pr-head { border-bottom: 2px solid #1e293b; padding-bottom: 8px; margin-bottom: 10px; }
+.pr-head h1 { font-size: 18px; color: #1e293b; }
+.pr-head p { color: #555; }
+.bill-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 16px; margin-bottom: 10px; }
+.info-group h4 { font-size: 9.5px; text-transform: uppercase; letter-spacing: .8px; color: #64748b; }
+.info-group p { font-weight: 600; }
+.bill-items table { border: 1px solid #94a3b8; }
+.bill-items th { background: #e2e8f0; font-size: 9.5px; text-transform: uppercase; text-align: left; padding: 5px; border-bottom: 1px solid #94a3b8; }
+.bill-items td { padding: 5px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+.bill-items tfoot td { font-weight: 700; background: #f1f5f9; }
+.cell-sub { display: block; font-size: 9.5px; color: #64748b; }
+.bill-summary { margin-top: 10px; margin-left: auto; width: 55%; border: 1px solid #94a3b8; }
+.gst-line { display: flex; justify-content: space-between; padding: 4px 10px; border-bottom: 1px solid #e2e8f0; }
+.bill-total { margin-top: 8px; padding: 8px 10px; background: #1e293b; color: #fff; font-size: 15px; font-weight: 700; text-align: right; }
+.muted { color: #666; }
+.badge { font-size: 10px; }
+@media screen { body { background: #e5e7eb; } .doc { max-width: 210mm; margin: 12px auto; background: #fff; padding: 12mm; box-shadow: 0 2px 12px rgba(0,0,0,.2); } }
+`;
+
+function printDocument(title, bodyHtml, opts) {
+    opts = opts || {};
+    const old = document.getElementById('printFrame'); if (old) old.remove();
+    const f = document.createElement('iframe');
+    f.id = 'printFrame'; f.setAttribute('aria-hidden', 'true');
+    f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+    document.body.appendChild(f);
+    const d = f.contentDocument;
+    d.open();
+    d.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escHtml(title)}</title><style>${PRINT_CSS}</style></head><body class="${opts.landscape ? 'landscape' : ''}"><div class="doc">${bodyHtml}</div></body></html>`);
+    d.close();
+    const go = () => {
+        try { f.contentWindow.focus(); f.contentWindow.print(); }
+        catch (e) { alert('Could not start printing. Try the Download PDF button instead.'); }
+        setTimeout(() => { if (f.parentNode) f.remove(); }, 60000);
+    };
+    // let the frame lay out (fonts/images) before the print dialog opens
+    setTimeout(go, 350);
+}
+
+// 1234.5 -> "Rupees One Thousand Two Hundred Thirty Four and Fifty Paise Only" (Indian grouping)
+function amountInWords(n) {
+    n = Math.round((Number(n) || 0) * 100) / 100;
+    const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    const two = x => x < 20 ? ones[x] : tens[Math.floor(x / 10)] + (x % 10 ? ' ' + ones[x % 10] : '');
+    const three = x => (x >= 100 ? ones[Math.floor(x / 100)] + ' Hundred' + (x % 100 ? ' ' : '') : '') + (x % 100 ? two(x % 100) : '');
+    const words = x => {
+        if (x === 0) return 'Zero';
+        const parts = [];
+        const cr = Math.floor(x / 10000000), la = Math.floor(x / 100000) % 100, th = Math.floor(x / 1000) % 100, rest = x % 1000;
+        if (cr) parts.push(three(cr) + ' Crore');
+        if (la) parts.push(two(la) + ' Lakh');
+        if (th) parts.push(two(th) + ' Thousand');
+        if (rest) parts.push(three(rest));
+        return parts.join(' ');
+    };
+    const rupees = Math.floor(n), paise = Math.round((n - rupees) * 100);
+    return 'Rupees ' + words(rupees) + (paise ? ' and ' + two(paise) + ' Paise' : '') + ' Only';
+}
+
+function billPrintHtml(bill) {
+    const t = getBillTotals(bill);
+    const c = bill.customer || {};
+    const m = v => (Number(v) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const qtyTotal = bill.items.reduce((a, i) => a + (Number(i.qty) || 0), 0);
+    const rows = bill.items.map((it, n) => {
+        const taxable = Number(it.amount) || (Number(it.qty) || 0) * (Number(it.rate) || 0);
+        const gst = taxable * (Number(it.gstRate) || 0) / 100;
+        return `<tr><td>${n + 1}</td><td>${escHtml(it.name)}</td><td>${escHtml(it.hsn || '')}</td><td class="num">${escHtml(it.qty)}</td><td class="num">${m(it.rate)}</td><td class="num">${m(taxable)}</td><td class="num">${fmtRate(it.gstRate)}</td><td class="num">${m(gst)}</td><td class="num">${m(taxable + gst)}</td></tr>`;
+    }).join('');
+    return `
+    <div class="inv-head">
+        <div><h1>${escHtml(COMPANY_INFO.NAME)}</h1><p>${escHtml(COMPANY_INFO.ADDRESS)}</p><p>GSTIN: <b>${escHtml(COMPANY_INFO.GSTIN)}</b> &nbsp;·&nbsp; Phone: ${escHtml(COMPANY_INFO.PHONE)}</p></div>
+        <div class="inv-title"><b>TAX INVOICE</b><span>Original for recipient</span></div>
+    </div>
+    <div class="boxes">
+        <div class="box"><h4>Billed to</h4>
+            <p class="big">${escHtml(c.name || 'Walk-in customer')}</p>
+            ${c.address ? `<p>${escHtml(c.address)}</p>` : ''}
+            ${c.phone ? `<p>Phone: ${escHtml(c.phone)}</p>` : ''}
+            ${c.gstin ? `<p>GSTIN: <b>${escHtml(c.gstin)}</b></p>` : ''}</div>
+        <div class="box"><h4>Invoice details</h4>
+            <div class="kv"><span>Invoice No.</span><b>${escHtml(bill.invoiceNo)}</b>
+            <span>Date</span><b>${escHtml(formatDate(bill.date))}</b>
+            <span>Payment mode</span><span style="color:#111">${escHtml(bill.paymentMode || '-')}</span>
+            <span>Status</span><span style="color:#111">${escHtml(bill.status || '-')}</span></div></div>
+    </div>
+    <table class="items">
+        <thead><tr><th style="width:4%">#</th><th>Description</th><th style="width:9%">HSN</th><th class="num" style="width:6%">Qty</th><th class="num" style="width:11%">Rate</th><th class="num" style="width:12%">Taxable value</th><th class="num" style="width:7%">GST</th><th class="num" style="width:10%">GST amt</th><th class="num" style="width:12%">Amount</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td></td><td>Total</td><td></td><td class="num">${qtyTotal}</td><td></td><td class="num">${m(t.subtotal)}</td><td></td><td class="num">${m(t.totalGst)}</td><td class="num">${m(t.subtotal + t.totalGst)}</td></tr></tfoot>
+    </table>
+    <div class="lower">
+        <table class="tax">
+            <thead><tr><th>GST rate</th><th>Taxable</th><th>CGST</th><th>SGST</th><th>Total tax</th></tr></thead>
+            <tbody>${t.gstBreakup.map(g => `<tr><td>${fmtRate(g.rate)} (${fmtRate(g.rate / 2)}+${fmtRate(g.rate / 2)})</td><td>${m(g.taxable)}</td><td>${m(g.cgst)}</td><td>${m(g.sgst)}</td><td>${m(g.cgst + g.sgst)}</td></tr>`).join('')}</tbody>
+            <tfoot><tr><td>Total</td><td>${m(t.subtotal)}</td><td>${m(t.totalCgst)}</td><td>${m(t.totalSgst)}</td><td>${m(t.totalGst)}</td></tr></tfoot>
+        </table>
+        <div class="sum">
+            <div><span>Total without GST</span><span>₹ ${m(t.subtotal)}</span></div>
+            <div><span>CGST</span><span>₹ ${m(t.totalCgst)}</span></div>
+            <div><span>SGST</span><span>₹ ${m(t.totalSgst)}</span></div>
+            <div class="grand"><span>Total after GST</span><span>₹ ${m(t.total)}</span></div>
+        </div>
+    </div>
+    <div class="words"><span class="muted">Amount in words:</span> <b>${amountInWords(t.total)}</b></div>
+    <div class="foot">
+        <div class="terms">E. &amp; O.E.<br>This is a computer-generated invoice.</div>
+        <div class="sign"><div class="line"></div>For <b>${escHtml(COMPANY_INFO.NAME)}</b><br><span class="muted">Authorised signatory</span></div>
+    </div>
+    <p class="thanks">Thank you for your business!</p>`;
+}
+
 function printBill() {
-    if (!currentBill) {
-        alert('No bill selected to print');
-        return;
-    }
-
-    const content = document.getElementById('billViewContent').innerHTML;
-    const stylesHref = 'styles.css';
-
-    const printWindow = window.open('', '_blank', 'width=800,height=900');
-    if (!printWindow) {
-        alert('Unable to open print window. Please allow popups.');
-        return;
-    }
-
-    printWindow.document.open();
-    printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Print Bill - ${currentBill.invoiceNo}</title><link rel="stylesheet" href="${stylesHref}"></head><body>${content}</body></html>`);
-    printWindow.document.close();
-
-    // Give the new window a moment to load resources, then print and close it
-    printWindow.focus();
-    setTimeout(() => {
-        printWindow.print();
-        // Optionally close after printing; keep small delay for print dialog
-        setTimeout(() => printWindow.close(), 500);
-    }, 300);
+    if (!currentBill) { alert('No bill selected to print'); return; }
+    printDocument('Invoice ' + currentBill.invoiceNo, billPrintHtml(currentBill));
 }
 
 async function deleteBill(billId) {
