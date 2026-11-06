@@ -773,6 +773,12 @@
         }
     }
     $('pvEdit').addEventListener('click', () => renderView(true));
+    $('pvPrint').addEventListener('click', () => {
+        if (!viewing) return;
+        const body = $('purchaseViewContent').cloneNode(true);
+        body.querySelectorAll('button, .icon-btn').forEach(e => e.remove());
+        printDocument('Purchase ' + viewing.purchaseNo, `<div class="pr-head"><h1>${esc(COMPANY_INFO.NAME)}</h1><p>Purchase record ${esc(viewing.purchaseNo)} · GSTIN ${esc(COMPANY_INFO.GSTIN)}</p></div>` + body.innerHTML, { landscape: true });
+    });
     $('pvDelete').addEventListener('click', () => { if (viewing) deletePurchase(viewing.id); });
 
     window.deletePurchase = async function (id) {

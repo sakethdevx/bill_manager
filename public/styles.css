@@ -571,8 +571,16 @@ mark { background: color-mix(in srgb, #facc15 55%, transparent); color: inherit;
 }
 
 @media print {
-    body { background: #fff; }
+    :root, :root[data-theme="dark"] { color-scheme: light; }
+    body { background: #fff !important; color: #111 !important; }
     .bill-view { padding: 0; }
+    /* Ctrl+P on any page prints just the content: no sidebar, top bar, buttons or pop-ups */
+    .sidebar, .topbar, .drawer-overlay, .toasts, .palette, #syncPill, #syncPop, #themeMenu, .ss-pop, .suggest,
+    .mobile-sort, .modal-actions, .icon-btn, .page-actions, .table-toolbar, .pager, #boot { display: none !important; }
+    .app, .main, .content, main { display: block !important; margin: 0 !important; padding: 0 !important; width: auto !important; height: auto !important; overflow: visible !important; }
+    .card, .table-wrap, .stat-card { box-shadow: none !important; }
+    table { page-break-inside: auto; } tr { page-break-inside: avoid; }
+    thead { display: table-header-group; }
 }
 
 /* ==========================================================================
